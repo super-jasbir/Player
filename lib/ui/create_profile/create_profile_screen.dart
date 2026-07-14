@@ -220,6 +220,12 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                     icon: Icons.person_outline,
                     borderColor: _fieldBorder,
                   ),
+                  SizedBox(height: 16.h),
+
+                  // NRIC (local) / Passport (tourist) — depends on the region
+                  // chosen on the SelectNationlityScreen.
+                  _identityField(),
+
                   SizedBox(height: 20.h),
 
                   // Food type (single selection, sent as foodType)
@@ -259,6 +265,28 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
 
   Widget _label(IconData icon, String text) =>
       AppFieldLabel(icon: icon, text: text, color: _accentPurple);
+
+  /// NRIC for locals, Passport for tourists — both persist to [passPortC].
+  Widget _identityField() {
+    final bool isTourist =
+        controller.appController.selectedNation == "outside_singapore";
+    final String label = isTourist ? "Passport Number" : "NRIC Number";
+    final String hint =
+        isTourist ? "Enter Passport Number" : "Enter NRIC Number";
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _label(Icons.badge_outlined, label),
+        SizedBox(height: 8.h),
+        AppInputField(
+          controller: controller.passPortC,
+          hint: hint,
+          icon: Icons.badge_outlined,
+          borderColor: _fieldBorder,
+        ),
+      ],
+    );
+  }
 
   Widget _avatar() {
     return Stack(

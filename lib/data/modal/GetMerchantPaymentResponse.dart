@@ -31,6 +31,7 @@ class MerchantPayment {
   String? outletImage;
   String? completionDatetime;
   String? amountPaid;
+  String? commission;
   int? isGameStarted;
   String? createdAt;
   String? updatedAt;
@@ -47,6 +48,7 @@ class MerchantPayment {
         this.outletImage,
         this.completionDatetime,
         this.amountPaid,
+        this.commission,
         this.isGameStarted,
         this.createdAt,
         this.updatedAt});
@@ -63,6 +65,7 @@ class MerchantPayment {
     outletImage = json['outletImage'];
     completionDatetime = json['completion_datetime'];
     amountPaid = json['amountPaid'];
+    commission = json['commission']?.toString();
     isGameStarted = json['is_game_started'];
     createdAt = json['created_at'];
     updatedAt = json['updated_at'];
@@ -81,6 +84,7 @@ class MerchantPayment {
     data['outletImage'] = this.outletImage;
     data['completion_datetime'] = this.completionDatetime;
     data['amountPaid'] = this.amountPaid;
+    data['commission'] = this.commission;
     data['is_game_started'] = this.isGameStarted;
     data['created_at'] = this.createdAt;
     data['updated_at'] = this.updatedAt;

@@ -19,11 +19,11 @@ class ForgetPassController extends BaseController{
 
   Widget mobileNumberTextField() {
     return Container(
-        height: 52,
+        height: 56,
         decoration: BoxDecoration(
           color: Colors.white,
-            borderRadius: BorderRadius.circular(8.0),
-            border: Border.all(color: Colors.grey.withOpacity(.5), width: .5)),
+            borderRadius: BorderRadius.circular(14.0),
+            border: Border.all(color: const Color(0xFFE5E7EB), width: 1)),
         child: Theme(
             data: ThemeData(
               inputDecorationTheme: const InputDecorationTheme(
@@ -44,6 +44,7 @@ class ForgetPassController extends BaseController{
                     fontFamily: AppFonts.satoshiRegular,
                     color: Colors.black),
                 autovalidateMode: AutovalidateMode.disabled,
+                textAlignVertical: TextAlignVertical.center,
                 decoration: InputDecoration(
                   hintText: appConstant.enterYourPhoneNumber,
                   hintStyle: const TextStyle(

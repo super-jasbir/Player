@@ -191,7 +191,7 @@ class _GameScreenState extends State<GameListScreen> {
               ),
               // Centered content.
               Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [

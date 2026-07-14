@@ -4,7 +4,9 @@ import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:player/app_controller.dart';
 import 'package:player/common_widgets.dart';
 import 'package:player/data/modal/game/game_detail_response.dart' show OutletDetail;
@@ -269,9 +271,7 @@ class _GameScreenState extends State<GameMerchantList> {
                       title: "CONTINUE",
                       onPressed: () {
                         Navigator.of(ctx).pop();
-                        Get.to(GameMerchantDetail())?.then((_) {
-                          _refreshGameDetail();
-                        });
+                        _captureAndComplete();
                       },
                     ),
                   ],
@@ -282,6 +282,204 @@ class _GameScreenState extends State<GameMerchantList> {
         ),
         );
       },
+    );
+  }
+
+  // ---- After the congrats dialog: open the camera, upload the selfie, hit
+  // ---- the game-completion API, then show the "points earned" dialog. ----
+  Future<void> _captureAndComplete() async {
+    // Fresh capture each time.
+    merchantC.uploadedProfileImage.value = "";
+    await merchantC.pickImage(camera: true);
+
+    // User cancelled the camera / upload failed.
+    if (merchantC.uploadedProfileImage.value.isEmpty) {
+      Fluttertoast.showToast(msg: "Please capture an image to continue");
+      return;
+    }
+
+    // Same "is this the last outlet?" logic as the old GameMerchantDetail.
+    bool lastItem = false;
+    final int completedCount =
+        controller.outletList.where((item) => item.isGameStarted == 1).length;
+    if (completedCount == (controller.outletList.length - 1)) {
+      lastItem = true;
+    }
+
+    merchantC.gameComplete(
+      controller.gameData?.gameUniqueId ?? "",
+      controller.gameData?.start_timer_count,
+      controller.gameData?.end_timer_count,
+      appC.gameName,
+      lastItem,
+      controller.outletDetail?.outletId.toString() ?? "",
+      controller.outletDetail?.outletName ?? "",
+      () {
+        // Refresh the merchant list behind the dialog, then celebrate.
+        _refreshGameDetail();
+        final raw =
+            merchantC.merchantPaymentResponse?.value.data?.commission ?? "0";
+        final points = double.tryParse(raw)?.toStringAsFixed(0) ?? raw;
+        _showPointsDialog(points);
+      },
+    );
+  }
+
+  void _showPointsDialog(String points) {
+    final String shareText =
+        "I just earned $points points on Spendrathon! Join me and start turning your spending into rewards.";
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierLabel: "Points",
+      barrierColor: Colors.black.withOpacity(0.45),
+      pageBuilder: (ctx, _, __) {
+        return Material(
+          type: MaterialType.transparency,
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+                  child: Container(color: Colors.black.withOpacity(0.10)),
+                ),
+              ),
+              Center(
+                child: Container(
+                  margin: EdgeInsets.symmetric(horizontal: 24.w),
+                  padding: EdgeInsets.fromLTRB(24.w, 28.h, 24.w, 20.h),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.92),
+                    borderRadius: BorderRadius.circular(24.r),
+                    boxShadow: const [
+                      BoxShadow(
+                          color: Colors.black26,
+                          blurRadius: 20,
+                          offset: Offset(0, 8)),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        "CONGRATULATION",
+                        style: TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 26.sp,
+                          fontWeight: FontWeight.w900,
+                          color: _accentBlue,
+                        ),
+                      ),
+                      SizedBox(height: 6.h),
+                      Text(
+                        "You earned $points points.",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 14.sp,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                      Text(
+                        "SHARE to earn extra points.",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 14.sp,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                      SizedBox(height: 20.h),
+                      Icon(Icons.star_rounded,
+                          size: 110,
+                          color: const Color(0xFFF4B400),
+                          shadows: const [
+                            Shadow(
+                                color: Colors.black26,
+                                blurRadius: 8,
+                                offset: Offset(0, 4)),
+                          ]),
+                      SizedBox(height: 22.h),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          _socialButton(
+                            icon: Icons.facebook,
+                            color: const Color(0xFF1877F2),
+                            onTap: () => _share(shareText),
+                          ),
+                          SizedBox(width: 16.w),
+                          _socialButton(
+                            icon: Icons.camera_alt,
+                            color: const Color(0xFFE1306C),
+                            onTap: () => _share(shareText),
+                          ),
+                          SizedBox(width: 16.w),
+                          _socialButton(
+                            icon: Icons.chat,
+                            color: const Color(0xFF25D366),
+                            onTap: () => _share(shareText),
+                          ),
+                          SizedBox(width: 16.w),
+                          _socialButton(
+                            icon: Icons.close,
+                            color: Colors.black,
+                            onTap: () => _share(shareText),
+                          ),
+                          SizedBox(width: 16.w),
+                          _socialButton(
+                            icon: Icons.more_horiz,
+                            color: const Color(0xFF4FC3F7),
+                            onTap: () => _share(shareText),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 18.h),
+                      InkWell(
+                        onTap: () {
+                          Navigator.of(ctx).pop();
+                          Get.offAll(HomeScreenPlayer());
+                        },
+                        child: Text(
+                          "CLOSE",
+                          style: TextStyle(
+                            fontFamily: 'Inter',
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.grey.shade600,
+                            decoration: TextDecoration.underline,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _share(String text) {
+    SharePlus.instance.share(ShareParams(text: text));
+  }
+
+  Widget _socialButton({
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      customBorder: const CircleBorder(),
+      child: Container(
+        width: 44,
+        height: 44,
+        decoration: BoxDecoration(shape: BoxShape.circle, color: color),
+        child: Icon(icon, color: Colors.white, size: 22),
+      ),
     );
   }
 

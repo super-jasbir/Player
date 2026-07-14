@@ -19,7 +19,7 @@ class SelectNationlityScreen extends GetView<SelectNationlity> {
     SharedPref.saveNationality(nationality);
     // Onboarding is complete once the region is chosen.
     SharedPref.saveOnboardingDone(true);
-    Get.toNamed(AppRoutes.loginScreen);
+    Get.toNamed(AppRoutes.signUpScreen);
   }
 
   @override

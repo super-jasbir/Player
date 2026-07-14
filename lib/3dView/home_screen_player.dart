@@ -58,68 +58,70 @@ class _HomeScreenPlayerState extends State<HomeScreenPlayer> {
     final Size size = MediaQuery.of(context).size;
 
     return Scaffold(
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          // Background city artwork (WALLET + TUTORIAL signs are baked in).
-          Positioned.fill(
-            child: Image.asset(_bg, fit: BoxFit.cover),
-          ),
-
-          // Interactive signboards positioned over the background.
-          // Sizes/positions follow the Figma (PLAY GAME board ~129px on a
-          // 390px frame => widthFactor ~0.33).
-          _Signboard(
-            asset: _icSettings,
-            leftFactor: 0.02,
-            topFactor: 0.505,
-            widthFactor: 0.32,
-            screen: size,
-            onTap: () => Get.to(SettingScreen()),
-          ),
-          _Signboard(
-            asset: _icPlayGame,
-            leftFactor: 0.635,
-            topFactor: 0.512,
-            widthFactor: 0.33,
-            screen: size,
-            onTap: _startGame,
-          ),
-          _Signboard(
-            asset: _icQuiz,
-            leftFactor: 0.07,
-            topFactor: 0.63,
-            widthFactor: 0.27,
-            screen: size,
-            onTap: () => _comingSoon("Quiz"),
-          ),
-          _Signboard(
-            asset: _icShop,
-            leftFactor: 0.62,
-            topFactor: 0.705,
-            widthFactor: 0.30,
-            screen: size,
-            onTap: () => _comingSoon("Shop"),
-          ),
-
-          // Top bar: avatar + notifications + coin balance (shared widget).
-          const Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: SafeArea(child: HomeTopBar()),
-          ),
-
-          // Bottom PLAY button with a notification badge.
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: size.height * 0.05,
-            child: Center(
-              child: _PlayButton(badgeCount: 3, onTap: _startGame),
+      body: SafeArea(
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            // Background city artwork (WALLET + TUTORIAL signs are baked in).
+            Positioned.fill(
+              child: Image.asset(_bg, fit: BoxFit.cover),
             ),
-          ),
-        ],
+
+            // Interactive signboards positioned over the background.
+            // Sizes/positions follow the Figma (PLAY GAME board ~129px on a
+            // 390px frame => widthFactor ~0.33).
+            _Signboard(
+              asset: _icSettings,
+              leftFactor: 0.02,
+              topFactor: 0.505,
+              widthFactor: 0.32,
+              screen: size,
+              onTap: () => Get.to(SettingScreen()),
+            ),
+            _Signboard(
+              asset: _icPlayGame,
+              leftFactor: 0.635,
+              topFactor: 0.512,
+              widthFactor: 0.33,
+              screen: size,
+              onTap: _startGame,
+            ),
+            _Signboard(
+              asset: _icQuiz,
+              leftFactor: 0.07,
+              topFactor: 0.63,
+              widthFactor: 0.27,
+              screen: size,
+              onTap: () => _comingSoon("Quiz"),
+            ),
+            _Signboard(
+              asset: _icShop,
+              leftFactor: 0.62,
+              topFactor: 0.705,
+              widthFactor: 0.30,
+              screen: size,
+              onTap: () => _comingSoon("Shop"),
+            ),
+
+            // Top bar: avatar + notifications + coin balance (shared widget).
+            const Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: SafeArea(child: HomeTopBar()),
+            ),
+
+            // Bottom PLAY button with a notification badge.
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: size.height * 0.05,
+              child: Center(
+                child: _PlayButton(badgeCount: 3, onTap: _startGame),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -173,8 +175,8 @@ class _PlayButton extends StatelessWidget {
         clipBehavior: Clip.none,
         children: [
           Container(
-            width: 220,
-            height: 66,
+            width: 146,
+            height: 56,
             alignment: Alignment.center,
             decoration: BoxDecoration(
               gradient: const LinearGradient(

@@ -133,6 +133,7 @@ class SignupController extends BaseController{
                     fontFamily: AppFonts.satoshiRegular,
                     color: Colors.black),
                 autovalidateMode: AutovalidateMode.disabled,
+                textAlignVertical: TextAlignVertical.center,
                 decoration: InputDecoration(
                   hintText: appConstant.enterYourPhoneNumber,
                   hintStyle: const TextStyle(

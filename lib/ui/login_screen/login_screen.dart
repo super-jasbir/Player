@@ -69,13 +69,9 @@ class LoginScreen extends GetView<LoginController> {
                           text: l10n.phoneNumberLabel,
                           color: _accentBlue),
                       SizedBox(height: 8.h),
-                      // Bound to mobileController so login() stays unchanged.
-                      AppInputField(
-                        controller: controller.mobileController,
-                        hint: l10n.phoneNumberLabel,
-                        icon: Icons.phone,
-                        keyboardType: TextInputType.phone,
-                      ),
+                      // Country-code picker + phone number (bound to
+                      // mobileController so login() stays unchanged).
+                      controller.mobileNumberTextField(),
                       SizedBox(height: 16.h),
                       AppFieldLabel(
                           icon: Icons.lock_outline,

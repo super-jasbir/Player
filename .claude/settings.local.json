@@ -62,7 +62,8 @@
       "Bash(python3 -c \"import numpy; print\\('numpy ok'\\)\")",
       "Bash(cd \"/Users/jasbir/Downloads/iconasset\" && ls -la | grep -i game; echo \"=== copy ===\"; cp /Users/jasbir/Downloads/iconasset/ic_game_sample* /Users/jasbir/Downloads/freelance/projects/player/assets/images/home/ 2>/dev/null && ls -l /Users/jasbir/Downloads/freelance/projects/player/assets/images/home/ic_game_sample* ; echo \"=== spendrathon logo asset ===\"; ls -l /Users/jasbir/Downloads/freelance/projects/player/assets/images/ic_spendrathon_card.png)",
       "Bash(ls -la /Users/jasbir/Downloads/iconasset/ 2>&1)",
-      "Bash(cp /Users/jasbir/Downloads/iconasset/ic_game_sample.png /Users/jasbir/Downloads/freelance/projects/player/assets/images/ic_game_sample.png && ls -la /Users/jasbir/Downloads/freelance/projects/player/assets/images/ic_game_sample.png)"
+      "Bash(cp /Users/jasbir/Downloads/iconasset/ic_game_sample.png /Users/jasbir/Downloads/freelance/projects/player/assets/images/ic_game_sample.png && ls -la /Users/jasbir/Downloads/freelance/projects/player/assets/images/ic_game_sample.png)",
+      "Bash(find ~/.pub-cache -path \"*intl_phone_field*/lib/intl_phone_field.dart\" 2>/dev/null | head -1 | xargs grep -n \"textAlignVertical\\\\|this.textAlign\\\\|contentPadding\\\\|TextAlignVertical\" 2>/dev/null | head)"
     ]
   }
 }
