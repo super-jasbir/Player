@@ -39,31 +39,37 @@ class OtpVerificationController extends BaseController{
   Widget pinTextField(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.only(left: 22.0, right: 22),
+        padding: const EdgeInsets.symmetric(horizontal: 8),
         child: PinCodeTextField(
-          // focusNode: node,
           appContext: context,
-
           length: 6,
           onChanged: (value) {
-
+            otpC.value = value;
           },
           onCompleted: (value) {
             otpC.value = value;
-           update();
+            update();
           },
+          enableActiveFill: true,
           pinTheme: PinTheme(
             shape: PinCodeFieldShape.box,
-            borderRadius: BorderRadius.circular(5),
-            borderWidth: 0.5,
-            fieldHeight: 40,
-            fieldWidth: 40,
-            activeColor: Colors.white,
-            inactiveColor: Colors.white,
-            selectedColor: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            borderWidth: 1,
+            fieldHeight: 54,
+            fieldWidth: 46,
+            activeColor: const Color(0xFF0288D1),
+            inactiveColor: const Color(0xFFE5E7EB),
+            selectedColor: const Color(0xFF29B6F6),
+            activeFillColor: Colors.white,
+            inactiveFillColor: Colors.white,
+            selectedFillColor: Colors.white,
           ),
           keyboardType: TextInputType.number,
-          textStyle: const TextStyle(fontSize: 20, color: Colors.white),
+          textStyle: const TextStyle(
+            fontSize: 20,
+            color: Color(0xFF1A1A1A),
+            fontWeight: FontWeight.w700,
+          ),
           obscureText: false,
           obscuringCharacter: "*",
           animationType: AnimationType.fade,

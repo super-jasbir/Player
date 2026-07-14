@@ -31,6 +31,13 @@ dependencies:
   flutter:
     sdk: flutter
 
+  # Localization (English + Malay + Chinese) — see docs/CONVENTIONS.md
+  flutter_localizations:
+    sdk: flutter
+
+  # Responsive sizing (matches Figma design size) — used by common_widgets.dart
+  flutter_screenutil: ^5.9.3
+
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
@@ -42,7 +49,7 @@ dependencies:
   pin_code_fields: ^8.0.1
   image_picker: ^1.1.2
   image_cropper: ^8.0.2
-  intl: ^0.19.0
+  intl: ^0.20.2
   local_auth: ^2.3.0
   fluttertoast: ^8.2.12
   google_maps_flutter: ^2.9.0
@@ -73,11 +80,15 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
+  # Enables Flutter's gen-l10n localization (lib/l10n/*.arb -> lib/generated/l10n)
+  generate: true
+
   assets:
     - assets/images/
     - assets/images/m1/
     - assets/images/m2/
     - assets/images/m3/
+    - assets/images/home/
     - assets/animation.json
     - assets/test.json
     - assets/click.mp3
@@ -90,6 +101,17 @@ flutter:
         - asset: assets/fonts/Montserrat-Regular.ttf
         - asset: assets/fonts/Montserrat-SemiBold.ttf
         - asset: assets/fonts/Montserrat-Bold.ttf
+          weight: 700
+    # Inter — imported from minimart. Use this family for all NEW screens.
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter-VariableFont.ttf
+          weight: 400
+        - asset: assets/fonts/Inter-VariableFont.ttf
+          weight: 500
+        - asset: assets/fonts/Inter-VariableFont.ttf
+          weight: 600
+        - asset: assets/fonts/Inter-VariableFont.ttf
           weight: 700
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in

@@ -1,266 +1,82 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:fluttertoast/fluttertoast.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:player/common_widgets.dart';
 
-import '../../../utils/app_color.dart';
-import '../../../utils/app_components.dart';
-import '../../app_controller.dart';
-import '../../routes/app_routes.dart';
-import '../../utils/app_utils.dart';
-import '../../utils/common_constants.dart';
 import 'forget_pass_controller.dart';
+
+/// Accent blue used for labels / links (matches the login screen).
+const Color _accentBlue = Color(0xFF0288D1);
 
 class ForgetPassScreen extends GetView<ForgetPassController> {
   const ForgetPassScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    var appC = Get.find<AppController>();
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       body: SafeArea(
-          child: Stack(
-        children: [
-          // Background Image
-          Container(
-            width: double.infinity,
-            height: double.infinity,
-            child: Image.asset(
-              "assets/images/m2/start_bg.png",
-              fit: BoxFit
-                  .cover, // Adjust to BoxFit.fill, BoxFit.contain, etc., as needed
-            ),
-          ),
-          Container(
-            width: double.infinity,
-            height: double.infinity,
-            color: Colors.grey.withOpacity(0.2), // Adjust opacity and color as needed
-          ),
-          SafeArea(
-            child: Column(
-              children: [
-                SizedBox(
-                  height: 25,
-                ),
-                Container(
-                  height: 30,
-                  decoration: BoxDecoration(),
-                  child: Row(
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            const AuthBlurredBackground(),
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: SingleChildScrollView(
+                child: BlurContainerWrapper(
+                  showClip: true,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      SizedBox(
-                        width: 18,
+                      const BackToLoginButton(),
+                      SizedBox(height: 12.h),
+                      TextMedium(
+                        'Forgot Password?',
+                        fontSize: 24,
+                        fontWeight: FontWeight.w800,
+                        color: const Color(0xFF1A1A1A),
                       ),
-                      InkWell(
-                          onTap: () {
-                            Get.back();
-                          },
-                          child: Icon(
-                            Icons.arrow_back_ios_new,
-                            color: Colors.white,
-                          )),
+                      SizedBox(height: 6.h),
+                      TextRegular(
+                        'Please enter your email to receive a password reset link',
+                        fontSize: 13,
+                        color: Colors.grey.shade700,
+                        height: 1.35,
+                      ),
+                      SizedBox(height: 20.h),
+                      const AppFieldLabel(
+                        icon: Icons.mail_outline,
+                        text: 'Email',
+                        color: _accentBlue,
+                      ),
+                      SizedBox(height: 8.h),
+                      AppInputField(
+                        controller: controller.mobileController,
+                        hint: 'you@example.com',
+                        icon: Icons.alternate_email,
+                        keyboardType: TextInputType.emailAddress,
+                      ),
+                      SizedBox(height: 14.h),
+                      const InfoNote("We'll send a verification code to this email"),
+                      SizedBox(height: 22.h),
+                      AppButton(
+                        title: 'Reset Password',
+                        onPressed: () {
+                          controller.forgetPassword(
+                            controller.selectedDialCode,
+                            controller.mobileController.text,
+                          );
+                        },
+                      ),
                     ],
                   ),
                 ),
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: EdgeInsets.only(
-                      top: MediaQuery.of(context).size.height * .12,
-                      left: 18,
-                      right: 18,
-                      bottom: 120, // To avoid overlap with bottom icons
-                    ),
-                    child: Column(
-                      children: [
-                        Image.asset("assets/images/m2/start_bg_logo.png"),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            SizedBox(
-                              height: 24,
-                            ),
-                            Container(
-                              alignment: Alignment.center,
-                              margin: EdgeInsets.only(
-                                  left: 18, top: 10),
-                              child: AppComponents.text(controller.appConstant.forgetPassword,
-                                  fontWeight: FontWeight.w900, size: 20, color: Colors.white),
-                            ),
-                            SizedBox(
-                              height: 6,
-                            ),
-                            Container(
-                              width: MediaQuery.of(context).size.width * .8,
-                              margin: EdgeInsets.only(left: 18),
-                              child: AppComponents.text(
-                                  controller.appConstant.pleaseEnterYourRegister,
-                                  fontWeight: FontWeight.w500,
-                                  size: 14,
-                                  maxLine: 2,
-                                  color: Colors.white,
-                                  textAlign: TextAlign.center),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 16),
-                        Container(
-                          padding: EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                                width: 1, color: AppColors.borderColor),
-                            color: Colors.white.withOpacity(0.3),
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.4),
-                                offset: Offset(0, 4),
-                                blurRadius: 10,
-                              ),
-                            ],
-                          ),
-                          child: Container(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  SizedBox(
-                                    height: 20,
-                                  ),
-                                  Container(
-                                    margin: EdgeInsets.only(left: 20, right: 20),
-                                    child: Image.asset("assets/images/m2/barline.png"),
-                                  ),
-                                  const SizedBox(
-                                    height: 15,
-                                  ),
-                                  Container(
-                                    margin: EdgeInsets.only(left: 18, top: 8),
-                                    child: AppComponents.text(
-                                        controller.appConstant.phoneNumber,
-                                        fontWeight: FontWeight.w500,
-                                        size: 14,
-                                        color: Colors.white),
-                                  ),
-                                  const SizedBox(
-                                    height: 15,
-                                  ),
-                                  Container(
-                                      margin: EdgeInsets.only(left: 18, right: 18),
-                                      child: controller.mobileNumberTextField()),
-                                  const SizedBox(
-                                    height: 30,
-                                  ),
-                                  Container(
-                                    margin: EdgeInsets.only(left: 18, right: 18),
-                                    child: AppComponents.appButton("Reset Password",
-                                        onTap: () {
-                                          controller.forgetPassword(
-                                              controller.selectedDialCode,
-                                              controller.mobileController.text);
-                                        }),
-                                  ),
-                                  const SizedBox(
-                                    height: 30,
-                                  ),
-                                ],
-                              )),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          /*/// spend logo
-          Container(
-            margin: EdgeInsets.only(
-                top: MediaQuery.of(context).size.height * .21,
-                left: 40,
-                right: 40),
-            child: Image.asset(
-              "assets/images/m2/start_bg_logo.png",
-            ),
-          ),*/
-
-          /*
-          Container(
-              margin: EdgeInsets.only(
-                  left: 18,
-                  top: MediaQuery.of(context).size.height * .44,
-                  right: 18),
-              // Set the desired width
-
-              decoration: BoxDecoration(
-                border: Border.all(width: 1, color: AppColors.borderColor),
-                color: Colors.white.withOpacity(0.3),
-                // Semi-transparent color
-                borderRadius: BorderRadius.circular(16),
-                // Rounded corners
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.4), // Shadow color
-                    offset: Offset(0, 4), // Shadow position
-                    blurRadius: 10, // Blur radius for softness
-                  ),
-                ],
               ),
-              child: Stack(
-                children: [
-                  Container(
-                    decoration: BoxDecoration(
-                        color: Colors.transparent,
-                        borderRadius: BorderRadius.circular(12)),
-                    child: SingleChildScrollView(
-                      child: Container(
-                          child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(
-                            height: 20,
-                          ),
-                          Container(
-                            margin: EdgeInsets.only(left: 20, right: 20),
-                            child: Image.asset("assets/images/m2/barline.png"),
-                          ),
-                          const SizedBox(
-                            height: 15,
-                          ),
-                          Container(
-                            margin: EdgeInsets.only(left: 18, top: 8),
-                            child: AppComponents.text(
-                                controller.appConstant.phoneNumber,
-                                fontWeight: FontWeight.w500,
-                                size: 14,
-                                color: Colors.white),
-                          ),
-                          const SizedBox(
-                            height: 15,
-                          ),
-                          Container(
-                              margin: EdgeInsets.only(left: 18, right: 18),
-                              child: controller.mobileNumberTextField()),
-                          const SizedBox(
-                            height: 30,
-                          ),
-                          Container(
-                            margin: EdgeInsets.only(left: 18, right: 18),
-                            child: AppComponents.appButton("Reset Password",
-                                onTap: () {
-                              controller.forgetPassword(
-                                  controller.selectedDialCode,
-                                  controller.mobileController.text);
-                            }),
-                          ),
-                          const SizedBox(
-                            height: 30,
-                          ),
-                        ],
-                      )),
-                    ),
-                  ),
-                ],
-              )),*/
-        ],
-      )),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

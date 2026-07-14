@@ -108,11 +108,11 @@ class SignupController extends BaseController{
 
   Widget mobileNumberTextField() {
     return Container(
-        height: 52,
+        height: 56,
         decoration: BoxDecoration(
           color: Colors.white,
-            borderRadius: BorderRadius.circular(8.0),
-            border: Border.all(color: Colors.grey.withOpacity(.5), width: .5)),
+            borderRadius: BorderRadius.circular(14.0),
+            border: Border.all(color: const Color(0xFFE0D5F0), width: 1)),
         child: Theme(
             data: ThemeData(
               inputDecorationTheme: const InputDecorationTheme(

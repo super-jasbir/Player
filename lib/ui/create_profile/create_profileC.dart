@@ -10,6 +10,7 @@ import 'package:image_picker/image_picker.dart';
 // import 'package:image_picker/image_picker.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:player/base_controller.dart';
+import 'package:player/data/local/shared_prefs.dart';
 import 'package:player/data/modal/postalCode/get_postal_response.dart';
 import 'package:player/data/network/api_service.dart';
 import 'package:player/routes/app_routes.dart';
@@ -254,8 +255,24 @@ class CreateProfileController extends BaseController{
     selectedDialCode = signUpC.selectedDialCode;
     mobileController.text = signUpC.mobileController.text;
 
+    _prefillOriginOfCountry();
 
     super.onInit();
+  }
+
+  /// Local users (nationality == "singapore") get "Singapore" pre-filled as
+  /// their origin of country; tourists/foreigners are left empty.
+  void _prefillOriginOfCountry() {
+    if (appController.selectedNation == "singapore") {
+      orginOfCountry.text = "Singapore";
+    } else if (appController.selectedNation.isEmpty) {
+      // App may have been restarted — fall back to the saved preference.
+      SharedPref.getNationality().then((nation) {
+        if (orginOfCountry.text.isEmpty && nation == "singapore") {
+          orginOfCountry.text = "Singapore";
+        }
+      });
+    }
   }
 
 }

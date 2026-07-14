@@ -13,12 +13,19 @@ class SplashScreenController extends BaseController{
 
   var leaderList = <SplashBannerList>[];
 
-  splashDelay()async {
-    await Future.delayed(const Duration(seconds: 1)).then((b){
+  splashDelay() async {
+    await Future.delayed(const Duration(seconds: 4));
+    final token = await SharedPref.getAccessToken();
+    if (token != null && token.isNotEmpty) {
+      // Returning logged-in user: skip the walkthrough/login and go straight
+      // to the home screen.
+      Get.offAll(HomeScreenPlayer());
+    } else {
+      // Not logged in: load banners and show the walkthrough / login flow.
       mysteryBoxList(() {
         Get.offAll(WalkthroughImageApp());
       });
-    });
+    }
   }
 
   mysteryBoxList(VoidCallback callback) async {

@@ -13,6 +13,7 @@ class AppColors {
  static const Color black =Color(0xFF1A1A1A);
  static const Color white =Color(0xFFFFFFFF);
  static const Color lightGrey =Color(0xFFEAEAEA);
+ static const Color purple2 =Color(0xFF7E57C2);
  static const Color darkGrey = Color(0xFF4A4A4A);
 
  static const Color quoteColor =Color(0xFFDEDEDE);

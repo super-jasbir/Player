@@ -1,16 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
-import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:player/common_widgets.dart';
+import 'package:player/core/theme/app_images.dart';
 import 'package:player/game/game_controller.dart';
 import 'package:player/game/selecthalalnonhalal/select_halal_non_halal.dart';
 import 'package:player/utils/app_utils.dart';
 
-import '../3dView/home_screen_player.dart';
+import '../3dView/home_top_bar.dart';
 import '../data/network/api_endpoints.dart';
-import '../map/game_tracker.dart';
-import '../utils/app_color.dart';
-import '../utils/app_components.dart';
+
+/// Accent blue used for titles / values (matches the login screen).
+const Color _accentBlue = Color(0xFF0288D1);
+
+/// HALAL button gradient (Figma: light green -> green).
+const List<Color> _halalGradient = [
+  Color(0xFFE4FCB3),
+  Color(0xFF85F629),
+  Color(0xFF85D102),
+];
+
+/// NON-HALAL button gradient (Figma: light gold -> amber).
+const List<Color> _nonHalalGradient = [
+  Color(0xFFFCF6B3),
+  Color(0xFFF6A429),
+  Color(0xFFD18C02),
+];
 
 class GameDetailScreen extends StatefulWidget {
   const GameDetailScreen({super.key});
@@ -20,407 +36,251 @@ class GameDetailScreen extends StatefulWidget {
 }
 
 class _GameScreenState extends State<GameDetailScreen> {
-  var controller = Get.put(GameController());
-  var isChecked = false;
+  final GameController controller = Get.put(GameController());
+  bool isChecked = false;
+
+  static const String _sampleGame = "assets/images/home/ic_game_sample.png";
+
+  void _selectStation(String type) {
+    if (!isChecked) {
+      Fluttertoast.showToast(msg: "Please accept Terms & Conditions");
+      return;
+    }
+    controller.getGameDetail(controller.gameData?.gameUniqueId ?? "", type, () {
+      controller.appController.selectHalalNonHalaValue = type;
+      Get.to(SelectHalalNonHalal());
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    var data = controller.gameData!;
+    final data = controller.gameData!;
+    final double w = MediaQuery.of(context).size.width;
+    final double clipRight = ((w - 32 - 42) / 2).clamp(20, w);
+
     return Scaffold(
-      body: SafeArea(
-        child: Stack(
-          children: [
-            // Background Image
-            Container(
-              width: double.infinity,
-              height: double.infinity,
-              child: Image.asset(
-                "assets/images/m2/game_bg.png",
-                fit: BoxFit
-                    .cover, // Adjust to BoxFit.fill, BoxFit.contain, etc., as needed
-              ),
-            ),
-            // Transparent Overlay
-            Container(
-              width: double.infinity,
-              height: double.infinity,
-              color: Colors.grey
-                  .withOpacity(0.2), // Adjust opacity and color as needed
-            ),
-
-            Column(
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          const HomeBlurredBackground(),
+          SafeArea(
+            child: Column(
               children: [
-                /// top navigation
-                Container(
-                  margin: EdgeInsets.only(
-                      top: MediaQuery.of(context).size.height * .05,
-                      left: 18,
-                      right: 18),
-                  child: Row(
-                    children: [
-                      InkWell(
-                          onTap: () {
-                            Get.back();
-                          },
-                          child: Icon(
-                            Icons.arrow_back_ios_new,
-                            color: Colors.white,
-                          )),
-                      Spacer(),
-                      AppComponents.text("Game Details",
-                          fontWeight: FontWeight.w700,
-                          size: 25,
-                          color: Colors.white),
-                      Spacer(),
-                      /*if(controller.gameData?.start_timer_count != null)...[
-                        InkWell(
-                            onTap: () {
-                              showDialog(
-                                  context: context,
-                                  builder: (BuildContext context) {
-                                    return AlertDialog(
-                                      title: const Text('Player'),
-                                      content: const Text('Do you really want to reset your game? This action will remove all completed stations detail.'),
-                                      actions: <Widget>[
-                                        TextButton(
-                                          child: const Text('cancel'),
-                                          onPressed: () {
-                                            Navigator.of(context).pop();
-                                          },
-                                        ),
-                                        TextButton(
-                                            child: const Text('Reset'),
-                                            onPressed: () {
-                                              Navigator.of(context).pop();
-                                              controller.getResetGame();
-                                            }),
-                                      ],
-                                    );
-                                  });
-                            },
-                            child: Container(
-                              width: 25,
-                              height: 25,
-                              child: Image.asset(
-                                "assets/images/ic_reset.jpg",
-                              ),
-                            )),
-                        SizedBox(width: 10,),
-                      ]*/
-                      InkWell(
-                          onTap: () {
-                            Get.offAll(HomeScreenPlayer());
-                          },
-                          child: Icon(
-                            Icons.home,
-                            size: 30,
-                            color: Colors.white,
-                          )),
-                    ],
-                  ),
+                const HomeTopBar(showNotifications: false),
+                SizedBox(height: 12.h),
+                // Spendrathon logo (reused from the splash/walkthrough).
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 32.w),
+                  child: Image.asset(AppImages.spendrathonCard, fit: BoxFit.contain),
                 ),
-                /// steps
-                Container(
-                  margin: EdgeInsets.only(
-                      top: 40,
-                      left: 18,
-                      right: 18),
-                  child: Row(
-                    children: [
-                      SizedBox(width: 18,),
-                      Expanded(child: Container(
-                        color: Colors.yellow,
-                        height: 4,
-
-                      )),
-                      SizedBox(width: 18,),
-                      Expanded(child: Container(
-                        color: Colors.yellow,
-                        height: 4,
-
-                      )),
-                      SizedBox(width: 18,),
-                      Expanded(child: Container(
-                        color: Colors.grey,
-                        height: 4,
-
-                      )),
-                      SizedBox(width: 18,),
-
-
-                    ],
-                  ),
-                ),
-                Expanded(child: SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      /// spend logo
-                      Container(
-                        margin: EdgeInsets.only(
-                            top: 30,
-                            left: 40,
-                            right: 40),
-                        child: Image.asset(
-                          "assets/images/m2/start_bg_logo.png",
-                        ),
-                      ),
-                      if(controller.gameData?.start_timer_count != null)...[
-                        InkWell(
-                            onTap: () {
-                              var name = controller.playername.value;
-                              showDialog(
-                                context: context,
-                                barrierDismissible: true,
-                                builder: (_) => Dialog(
-                                  backgroundColor: Colors.transparent,
-                                  insetPadding: const EdgeInsets.symmetric(horizontal: 24),
-                                  child: Stack(
-                                    clipBehavior: Clip.none,
-                                    children: [
-                                      // Popup Body
-                                      Container(
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xFF2C2C2C),
-                                          borderRadius: BorderRadius.circular(16),
-                                        ),
-                                        padding: const EdgeInsets.fromLTRB(20, 40, 20, 20),
-                                        child: Column(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            const SizedBox(height: 24),
-                                            Text(
-                                              name,
-                                              style: TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 18,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                            const SizedBox(height: 8),
-                                            const Text(
-                                              "Do you really want to reset your game? This action will remove all completed stations detail.",
-                                              textAlign: TextAlign.center,
-                                              style: TextStyle(
-                                                color: Colors.white70,
-                                                fontSize: 14,
-                                              ),
-                                            ),
-                                            const SizedBox(height: 20),
-                                            const Divider(color: Colors.white24),
-                                            Row(
-                                              children: [
-                                                Expanded(
-                                                  child: TextButton(
-                                                    onPressed: () {
-                                                      Navigator.pop(context);
-                                                    },
-                                                    child: const Text(
-                                                      "Cancel",
-                                                      style: TextStyle(
-                                                        color: Colors.white70,
-                                                        fontSize: 16,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                                Expanded(
-                                                  child: TextButton(
-                                                    onPressed: () {
-                                                      Navigator.of(context).pop();
-                                                      controller.getResetGame(data.gameUniqueId);
-                                                    },
-                                                    child: const Text(
-                                                      "Reset",
-                                                      style: TextStyle(
-                                                        color: Colors.redAccent,
-                                                        fontSize: 16,
-                                                        fontWeight: FontWeight.bold,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-
-                                      // Warning Icon
-                                      Positioned(
-                                        top: -35,
-                                        left: 0,
-                                        right: 0,
-                                        child: CircleAvatar(
-                                          backgroundColor: Colors.redAccent,
-                                          radius: 35,
-                                          child: const Icon(
-                                            Icons.warning_amber_rounded,
-                                            color: Colors.white,
-                                            size: 30,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
+                SizedBox(height: 8.h),
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        // Yellow frosted detail card with paperclip.
+                        BlurContainerWrapper(
+                          showClip: true,
+                          blurSigma: 20,
+                          minHeight: 0,
+                          margin: const EdgeInsets.symmetric(horizontal: 16),
+                          padding: const EdgeInsets.fromLTRB(18, 44, 18, 18),
+                          borderRadius: BorderRadius.circular(28),
+                          borderColor: Colors.white.withOpacity(0.6),
+                          gradientColors: [
+                            const Color(0xFFFDF7C0).withOpacity(0.92),
+                            const Color(0xFFFCEFA0).withOpacity(0.94),
+                          ],
+                          clipWidth: 42,
+                          clipTopOffset: -36,
+                          clipRightOffset: clipRight,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Circular back button.
+                              _CircleBackButton(onTap: () => Get.back()),
+                              SizedBox(height: 10.h),
+                              Center(
+                                child: Text(
+                                  data.gameName ?? "",
+                                  style: TextStyle(
+                                    fontFamily: 'Inter',
+                                    fontSize: 22.sp,
+                                    fontWeight: FontWeight.w800,
+                                    color: _accentBlue,
                                   ),
                                 ),
-                              );
-                            },
-                            child: Container(
-                              width: 150,
-                              height: 45,
-                              padding: EdgeInsets.all(3),
-                              margin: EdgeInsets.only(top: 10),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                  borderRadius: BorderRadius.circular(50)),
-                              child: Row(
-                                children: [
-                                  Image.asset(
-                                    "assets/images/ic_reset.png",
-                                  ),
-                                  SizedBox(
-                                    width: 10,
-                                  ),
-                                  AppComponents.text("Game reset",color: Colors.black)
-                                ],
                               ),
-                            )),
-                      ],
-                      /// glass transparent
-                      /// main view
-                      Container(
-                        width: 327,
-                        padding: EdgeInsets.only(bottom: 10),
-                        margin: EdgeInsets.only(
-                          top: 15,
-                          left: 40,
-                          right: 40,),
-                        decoration: BoxDecoration(
-                            image: DecorationImage(image: AssetImage("assets/images/m3/game_detail_bg.png"),fit: BoxFit.fill),
-                            borderRadius: BorderRadius.circular(12)),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              margin: EdgeInsets.only(left: 23, right: 23),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                              SizedBox(height: 14.h),
+                              // Game banner image.
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(14.r),
+                                child: SizedBox(
+                                  width: double.infinity,
+                                  height: 150,
+                                  child: (data.gamePoster ?? "").toString().isNotEmpty
+                                      ? AppUtils.remoteImageLoader(
+                                          ApiEndPoint.imageBaseUrl + data.gamePoster)
+                                      : Image.asset(_sampleGame, fit: BoxFit.cover),
+                                ),
+                              ),
+                              SizedBox(height: 16.h),
+                              _detailRow("Number Of Stations",
+                                  data.totalOutlet.toString()),
+                              SizedBox(height: 12.h),
+                              _detailRow("Date Of Completion", data.gameEndDate ?? ""),
+                              SizedBox(height: 12.h),
+                              _detailRow("Winner Prize", data.prize ?? ""),
+                              SizedBox(height: 18.h),
+                              // Terms & Conditions checkbox.
+                              Row(
                                 children: [
-                                  SizedBox(
-                                    height: 15,
+                                  _CheckBox(
+                                    value: isChecked,
+                                    onTap: () =>
+                                        setState(() => isChecked = !isChecked),
                                   ),
-
-                                  Align(
-                                    alignment: Alignment.center,
-                                    child:   data.gamePoster.isNotEmpty?
-                                    Container(
-                                      margin: EdgeInsets.only(left: 18,right: 18),
-                                      height: 120,
-
-                                      child: ClipRRect(
-                                          borderRadius: BorderRadius.circular(12),
-                                          child: AppUtils.remoteImageLoader(ApiEndPoint.imageBaseUrl+data.gamePoster)),
-                                    ):
-
-                                    Container(
-                                      margin: EdgeInsets.only(left: 18),
-                                      height: 80,
-                                      width: 80,
-                                      child: AppUtils.remoteImageLoader("assets/images/m3/temp_game_bg.png"),
+                                  SizedBox(width: 10.w),
+                                  Text(
+                                    "Please accept ",
+                                    style: TextStyle(
+                                      fontFamily: 'Inter',
+                                      fontSize: 14.sp,
+                                      color: const Color(0xFF374151),
                                     ),
                                   ),
-                                  SizedBox(height: 12,),
-                                  Align(
-                                      alignment: Alignment.center,
-                                      child: AppComponents.text(data.gameName,color: Colors.black,size: 16, fontWeight: FontWeight.w700)),
-
-                                  /// number of stations
-
-
-                                  SizedBox(height: 12,),
-                                  Row(children: [
-                                    Expanded(child: AppComponents.text("Total Stations:",color: Colors.black)),
-                                    SizedBox(width: 12,),
-                                    AppComponents.text(data.totalOutlet.toString(),color: Colors.black)
-
-                                  ],),
-                                  SizedBox(height: 6,),
-                                  // Divider(color: Colors.black,),
-                                  /// date of competition
-                                  SizedBox(height: 6,),
-                                  Row(children: [
-                                    Expanded(child: AppComponents.text("Game Period:",color: Colors.black)),
-                                    SizedBox(width: 12,),
-                                    AppComponents.text( data.gameEndDate??"",color: Colors.black)
-
-                                  ],),
-                                  SizedBox(height: 6,),
-
-                                  // Divider(color: Colors.black,),
-                                  /// winner prize
-                                  SizedBox(height: 6,),
-                                  Row(children: [
-                                    Expanded(child: AppComponents.text("Winning Prize",color: Colors.black)),
-                                    SizedBox(width: 12,),
-                                    AppComponents.text(data.prize??"",color: Colors.black)
-                                  ],),
+                                  Text(
+                                    "Terms & Conditions",
+                                    style: TextStyle(
+                                      fontFamily: 'Inter',
+                                      fontSize: 14.sp,
+                                      fontWeight: FontWeight.w700,
+                                      color: _accentBlue,
+                                    ),
+                                  ),
                                 ],
                               ),
-                            )
-                          ],
-                        ),
-                      ),
-                      Container(
-                          margin: EdgeInsets.only(
-                              top: 25,
-                              left: 20,
-                              right: 20),
-                          child: Column(
-                            children: [
-                              Row(
-                                children: [
-                                  // Checkbox(value: isChecked, onChanged: (value){
-                                  //   setState(() {
-                                  //     isChecked = value!;
-                                  //   });
-                                  //
-                                  // }, side: BorderSide(
-                                  //   color: Colors.white, // Outline/border color
-                                  //   width: 2, // Optional: thickness of the border
-                                  // ),),
-                                  Spacer(),
-                                  AppComponents.text("Please Select Your Game Station Preference",color: Colors.white,fontWeight: FontWeight.w700,size: 16),
-                                  Spacer()
-                                ],
-                              ),
-                              SizedBox(height: 18,),
-                              Row(
-                                children: [
-                                  Expanded(child: AppComponents.appButton("Halal Station",textSize: 12,onTap: (){
-                                    controller.getGameDetail(controller.gameData?.gameUniqueId??"", "Halal", () {
-                                      controller.appController.selectHalalNonHalaValue = "Halal";
-                                      Get.to(SelectHalalNonHalal());
-                                    });
-                                  })),
-                                  SizedBox(width: 12,),
-                                  Expanded(child: AppComponents.appButton("Non Halal Station",textSize: 12,onTap: (){
-                                    controller.getGameDetail(controller.gameData?.gameUniqueId??"", "Non-Halal", () {
-                                      controller.appController.selectHalalNonHalaValue = "Non-Halal";
-                                      Get.to(SelectHalalNonHalal());
-                                    });
-                                  })),
-                                ],
-                              )
                             ],
-                          )
-                      )
-                    ],
+                          ),
+                        ),
+                        SizedBox(height: 18.h),
+                        // HALAL / NON-HALAL buttons.
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: AppButton(
+                                  title: "HALAL",
+                                  height: 64,
+                                  gradientColors: _halalGradient,
+                                  onPressed: () => _selectStation("Halal"),
+                                ),
+                              ),
+                              SizedBox(width: 14.w),
+                              Expanded(
+                                child: AppButton(
+                                  title: "NON-HALAL",
+                                  height: 64,
+                                  gradientColors: _nonHalalGradient,
+                                  onPressed: () => _selectStation("Non-Halal"),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        SizedBox(height: 20.h),
+                      ],
+                    ),
                   ),
-                ))
+                ),
               ],
-            )
-          ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _detailRow(String label, String value) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: Text(
+            label,
+            style: TextStyle(
+              fontFamily: 'Inter',
+              fontSize: 14.sp,
+              color: const Color(0xFF4B5563),
+            ),
+          ),
         ),
+        SizedBox(width: 12.w),
+        Flexible(
+          child: Text(
+            value,
+            textAlign: TextAlign.right,
+            style: TextStyle(
+              fontFamily: 'Inter',
+              fontSize: 16.sp,
+              fontWeight: FontWeight.w800,
+              color: _accentBlue,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Circular translucent back button used at the top-left of the detail card.
+class _CircleBackButton extends StatelessWidget {
+  const _CircleBackButton({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      customBorder: const CircleBorder(),
+      child: Container(
+        width: 38,
+        height: 38,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: Colors.white.withOpacity(0.35),
+          border: Border.all(color: Colors.white.withOpacity(0.7)),
+        ),
+        child: const Icon(Icons.arrow_back, size: 20, color: Color(0xFF374151)),
+      ),
+    );
+  }
+}
+
+/// Rounded checkbox matching the Figma (blue when checked).
+class _CheckBox extends StatelessWidget {
+  const _CheckBox({required this.value, required this.onTap});
+
+  final bool value;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 24,
+        height: 24,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(7),
+          color: value ? _accentBlue : Colors.white.withOpacity(0.8),
+          border: Border.all(color: _accentBlue, width: 1.5),
+        ),
+        child: value
+            ? const Icon(Icons.check, size: 16, color: Colors.white)
+            : null,
       ),
     );
   }

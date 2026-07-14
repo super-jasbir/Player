@@ -19,6 +19,8 @@ import 'package:player/ui/permission_screen/permission_binding.dart';
 import 'package:player/ui/permission_screen/permission_screen.dart';
 import 'package:player/ui/select_language/select_language_binding.dart';
 import 'package:player/ui/select_language/select_language_screen.dart';
+import 'package:player/ui/select_new_user/new_user_binding.dart';
+import 'package:player/ui/select_new_user/new_user_screen.dart';
 import 'package:player/ui/select_nationlity/select_nationlity_binding.dart';
 import 'package:player/ui/select_nationlity/select_nationlity_controller.dart';
 import 'package:player/ui/select_nationlity/select_nationlity_screen.dart';
@@ -71,6 +73,12 @@ class AppPages {
       transition: Transition.leftToRightWithFade, // Add transition
 
 
+    ),
+    GetPage(
+      name: AppRoutes.newUserScreen,
+      page: () => const NewUserScreen(),
+      binding: NewUserBinding(),
+      transition: Transition.leftToRightWithFade, // Add transition
     ),
     GetPage(
       name: AppRoutes.selectNation,

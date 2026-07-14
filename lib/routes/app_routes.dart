@@ -10,6 +10,7 @@ class AppRoutes{
   static const forgetPassScreen = "/forgetPassScreen";
   static const signUpScreen = "/signUpScreen";
   static const createNewPassword = "/createNewPassword";
+  static const newUserScreen = "/newUserScreen";
   static const selectNation = "/selectNation";
   static const createProfile = "/createProfile";
   static const updateProfile = "/updateProfile";

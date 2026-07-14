@@ -1,22 +1,29 @@
 import 'dart:async';
+import 'dart:ui';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
 import 'package:player/app_controller.dart';
-import 'package:player/data/network/api_endpoints.dart';
-import 'package:player/game/game_list_screen.dart';
-import 'package:player/game/merchant/merchant_qr.dart';
+import 'package:player/common_widgets.dart';
+import 'package:player/data/modal/game/game_detail_response.dart' show OutletDetail;
+import 'package:player/game/merchant/GameMerchantDetail.dart';
 import 'package:player/merchant/merchant_controller.dart';
-import 'package:player/merchant/merchant_detail_screen.dart';
-import 'package:player/utils/app_utils.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
+import '../../3dView/home_top_bar.dart';
+// ---- imports kept for the OLD UI (see commented block at the bottom) ----
+import 'package:player/data/network/api_endpoints.dart';
+import 'package:player/utils/app_utils.dart';
 import '../../3dView/home_screen_player.dart';
 import '../../routes/app_routes.dart';
 import '../../utils/app_color.dart';
 import '../../utils/app_components.dart';
 import '../game_controller.dart';
+
+/// Accent blue used for titles / links (matches the login screen).
+const Color _accentBlue = Color(0xFF0288D1);
 
 class GameMerchantList extends StatefulWidget {
   const GameMerchantList({super.key});
@@ -26,6 +33,503 @@ class GameMerchantList extends StatefulWidget {
 }
 
 class _GameScreenState extends State<GameMerchantList> {
+  final GameController controller = Get.put(GameController());
+  final AppController appC = Get.find<AppController>();
+  final MerchantController merchantC = Get.put(MerchantController());
+
+  DateTime oldTime = DateTime.now();
+  DateTime newTime = DateTime.now();
+  Timer? _timer;
+  Timer? _qrPollTimer;
+  Duration diff = Duration.zero;
+  DateTime now = DateTime.now();
+
+  @override
+  void initState() {
+    appC.selectedNation;
+    controller.getGameDetail(controller.gameData?.gameUniqueId ?? "",
+        controller.appController.selectHalalNonHalaValue, () {
+      if (!mounted) return;
+      setState(() {});
+      _setupTimer();
+    });
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _qrPollTimer?.cancel();
+    super.dispose();
+  }
+
+  /// Starts (or refreshes) the elapsed-time ticker based on the game timers.
+  void _setupTimer() {
+    final gi = controller.gameInfo.value;
+    _timer?.cancel();
+    if (gi.end_timer_count == null && gi.start_timer_count != null) {
+      oldTime = DateTime.parse(gi.start_timer_count ?? "00:00:00");
+      _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+        if (!mounted) return;
+        setState(() {
+          now = DateTime.now();
+          diff = now.difference(oldTime);
+        });
+      });
+    } else if (gi.end_timer_count != null && gi.start_timer_count != null) {
+      oldTime = DateTime.parse(gi.start_timer_count ?? "00:00:00");
+      newTime = DateTime.parse(gi.end_timer_count ?? "00:00:00");
+      diff = newTime.difference(oldTime);
+    }
+  }
+
+  String formatAsHHMMSS(Duration diff) {
+    int hours = diff.inHours;
+    int minutes = diff.inMinutes % 60;
+    int seconds = diff.inSeconds % 60;
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    return "${twoDigits(hours)}:${twoDigits(minutes)}:${twoDigits(seconds)}";
+  }
+
+  void _refreshGameDetail() {
+    controller.getGameDetail(controller.gameData?.gameUniqueId ?? "",
+        controller.appController.selectHalalNonHalaValue, () {
+      if (!mounted) return;
+      setState(() {});
+      _setupTimer();
+    });
+  }
+
+  // ---- SHOW QR flow: fetch the player QR, show it in a dialog, poll for the
+  // ---- merchant payment, then show the congratulation dialog. ----
+  void _showQrFlow(OutletDetail data) {
+    controller.outletDetail = data;
+    merchantC.playerDetailsInfo.value = "";
+    _openQrDialog();
+    merchantC.getPlayerDetail(
+        controller.gameData?.gameUniqueId ?? "", data.outletUniqueId, () {
+      _qrPollTimer?.cancel();
+      _qrPollTimer = Timer.periodic(const Duration(seconds: 5), (t) {
+        merchantC.getPlayerPaymentDetail(controller.gameData?.gameUniqueId ?? "",
+            data.outletId.toString(), () {
+          final paid = merchantC.merchantPaymentResponse?.value.data?.amountPaid;
+          if (paid != null && paid.isNotEmpty) {
+            t.cancel();
+            if (mounted && Navigator.canPop(context)) {
+              Navigator.of(context).pop(); // close QR dialog
+            }
+            _showCongratsDialog();
+          }
+        });
+      });
+    });
+  }
+
+  void _openQrDialog() {
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierLabel: "QR",
+      barrierColor: Colors.black.withOpacity(0.45),
+      pageBuilder: (ctx, _, __) {
+        return Material(
+          type: MaterialType.transparency,
+          child: Stack(
+          children: [
+            Positioned.fill(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+                child: Container(color: Colors.black.withOpacity(0.15)),
+              ),
+            ),
+            SafeArea(
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _infoChip("Show the QR to the merchant."),
+                    SizedBox(height: 44.h),
+                    Obx(() {
+                      final d = merchantC.playerDetailsInfo.value;
+                      if (d.isEmpty) {
+                        return const SizedBox(
+                          height: 260,
+                          width: 260,
+                          child: Center(
+                            child: CupertinoActivityIndicator(
+                                color: Colors.white, radius: 22),
+                          ),
+                        );
+                      }
+                      return QrImageView(
+                        data: d,
+                        version: QrVersions.auto,
+                        size: 260,
+                        gapless: false,
+                        eyeStyle: const QrEyeStyle(
+                            eyeShape: QrEyeShape.square, color: Colors.white),
+                        dataModuleStyle: const QrDataModuleStyle(
+                            dataModuleShape: QrDataModuleShape.square,
+                            color: Colors.white),
+                      );
+                    }),
+                    SizedBox(height: 44.h),
+                    InkWell(
+                      onTap: () {
+                        _qrPollTimer?.cancel();
+                        Navigator.of(ctx).pop();
+                      },
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.arrow_back,
+                              color: Colors.white, size: 20),
+                          SizedBox(width: 6.w),
+                          Text(
+                            "Back",
+                            style: TextStyle(
+                              fontFamily: 'Inter',
+                              fontSize: 16.sp,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+        );
+      },
+    );
+  }
+
+  void _showCongratsDialog() {
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierLabel: "Congrats",
+      barrierColor: Colors.black.withOpacity(0.45),
+      pageBuilder: (ctx, _, __) {
+        return Material(
+          type: MaterialType.transparency,
+          child: Stack(
+          children: [
+            Positioned.fill(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+                child: Container(color: Colors.black.withOpacity(0.10)),
+              ),
+            ),
+            Center(
+              child: Container(
+                margin: EdgeInsets.symmetric(horizontal: 24.w),
+                padding: EdgeInsets.fromLTRB(24.w, 28.h, 24.w, 24.h),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.92),
+                  borderRadius: BorderRadius.circular(24.r),
+                  boxShadow: const [
+                    BoxShadow(
+                        color: Colors.black26,
+                        blurRadius: 20,
+                        offset: Offset(0, 8)),
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      "CONGRATULATION",
+                      style: TextStyle(
+                        fontFamily: 'Inter',
+                        fontSize: 26.sp,
+                        fontWeight: FontWeight.w900,
+                        color: _accentBlue,
+                      ),
+                    ),
+                    SizedBox(height: 6.h),
+                    Text(
+                      "To finish the steps process with a selfie",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontFamily: 'Inter',
+                        fontSize: 14.sp,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                    SizedBox(height: 20.h),
+                    Image.asset("assets/images/home/ic_selfi.png",
+                        height: 140, fit: BoxFit.contain),
+                    SizedBox(height: 24.h),
+                    AppButton(
+                      title: "CONTINUE",
+                      onPressed: () {
+                        Navigator.of(ctx).pop();
+                        Get.to(GameMerchantDetail())?.then((_) {
+                          _refreshGameDetail();
+                        });
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+        );
+      },
+    );
+  }
+
+  Widget _infoChip(String text) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.85),
+        borderRadius: BorderRadius.circular(22.r),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.info_outline, size: 16, color: Colors.grey.shade600),
+          SizedBox(width: 8.w),
+          Text(
+            text,
+            style: TextStyle(
+              fontFamily: 'Inter',
+              fontSize: 13.sp,
+              fontWeight: FontWeight.w500,
+              color: Colors.grey.shade700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // =========================================================================
+  // NEW UI
+  // =========================================================================
+  @override
+  Widget build(BuildContext context) {
+    final gi = controller.gameInfo.value;
+    final timerText = (gi.start_timer_count != null || gi.end_timer_count != null)
+        ? formatAsHHMMSS(diff)
+        : "00:00:00";
+
+    return Scaffold(
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          const HomeBlurredBackground(),
+          SafeArea(
+            child: Column(
+              children: [
+                _topPanel(timerText),
+                Expanded(
+                  child: Obx(() {
+                    final outlets = controller.outletList;
+                    if (outlets.isEmpty) {
+                      return Center(
+                        child: Text(
+                          "No Merchant Available In This Zone",
+                          style: TextStyle(
+                            fontFamily: 'Inter',
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
+                      );
+                    }
+                    return ListView.builder(
+                      padding: EdgeInsets.fromLTRB(16.w, 4.h, 16.w, 20.h),
+                      itemCount: outlets.length,
+                      itemBuilder: (_, i) => _merchantCard(outlets[i]),
+                    );
+                  }),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _topPanel(String timerText) {
+    return Container(
+      margin: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 8.h),
+      padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 14.h),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.30),
+        borderRadius: BorderRadius.circular(20.r),
+        boxShadow: const [
+          BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, 3)),
+        ],
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              const BackToLoginButton(text: 'Back'),
+              const Spacer(),
+              Image.asset("assets/images/home/ic_clock.png", height: 30),
+              SizedBox(width: 8.w),
+              Text(
+                timerText,
+                style: TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 24.sp,
+                  fontWeight: FontWeight.w800,
+                  color: _accentBlue,
+                ),
+              ),
+              const Spacer(),
+            ],
+          ),
+          SizedBox(height: 10.h),
+          Obx(() {
+            final outlets = controller.outletList;
+            final total = outlets.length;
+            final completed = outlets.where((d) => d.isGameStarted == 1).length;
+            final progress = total == 0 ? 0.0 : completed / total;
+            final pct = (progress * 100).round();
+            return Column(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(6.r),
+                  child: LinearProgressIndicator(
+                    value: progress,
+                    minHeight: 8,
+                    backgroundColor: Colors.white.withOpacity(0.6),
+                    valueColor: const AlwaysStoppedAnimation<Color>(_accentBlue),
+                  ),
+                ),
+                SizedBox(height: 8.h),
+                Row(
+                  children: [
+                    Text(
+                      "Completed Shop",
+                      style: TextStyle(
+                        fontFamily: 'Inter',
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF374151),
+                      ),
+                    ),
+                    const Spacer(),
+                    Text(
+                      "$pct%",
+                      style: TextStyle(
+                        fontFamily: 'Inter',
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w800,
+                        color: _accentBlue,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  Widget _merchantCard(OutletDetail data) {
+    return Container(
+      margin: EdgeInsets.only(bottom: 12.h),
+      padding: EdgeInsets.all(14.w),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.92),
+        borderRadius: BorderRadius.circular(16.r),
+        boxShadow: [
+          BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 6,
+              offset: const Offset(0, 3)),
+        ],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  data.outletName,
+                  style: TextStyle(
+                    fontFamily: 'Inter',
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.w700,
+                    color: _accentBlue,
+                  ),
+                ),
+                SizedBox(height: 4.h),
+                Text(
+                  data.outletAddress,
+                  style: TextStyle(
+                    fontFamily: 'Inter',
+                    fontSize: 13.sp,
+                    color: const Color(0xFF374151),
+                  ),
+                ),
+                SizedBox(height: 2.h),
+                Text(
+                  "${data.startHours} to ${data.endHours}",
+                  style: TextStyle(
+                    fontFamily: 'Inter',
+                    fontSize: 13.sp,
+                    color: const Color(0xFF374151),
+                  ),
+                ),
+                SizedBox(height: 6.h),
+                InkWell(
+                  onTap: () {
+                    controller.outletDetail = data;
+                    Get.to(GameMerchantDetail())?.then((_) => _refreshGameDetail());
+                  },
+                  child: Text(
+                    "View Details",
+                    style: TextStyle(
+                      fontFamily: 'Inter',
+                      fontSize: 13.sp,
+                      fontWeight: FontWeight.w600,
+                      color: _accentBlue,
+                      decoration: TextDecoration.underline,
+                      decorationColor: _accentBlue,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(width: 12.w),
+          AppButton(
+            title: "SHOW QR",
+            width: 118,
+            height: 60,
+            onPressed: () => _showQrFlow(data),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// =============================================================================
+// OLD UI (kept for reference — uncomment this block and restore the original
+// build() above to revert to the previous design).
+// =============================================================================
+/*
+class _GameScreenStateOld extends State<GameMerchantList> {
   var controller = Get.put(GameController());
   var appC = Get.find<AppController>();
 
@@ -58,7 +562,7 @@ class _GameScreenState extends State<GameMerchantList> {
   }
 
   String formatAsHHMMSS(Duration diff) {
-    int hours = diff.inHours; // total hours (can exceed 24)
+    int hours = diff.inHours;
     int minutes = diff.inMinutes % 60;
     int seconds = diff.inSeconds % 60;
 
@@ -71,10 +575,8 @@ class _GameScreenState extends State<GameMerchantList> {
   Widget build(BuildContext context) {
 
     if(controller.gameInfo.value.end_timer_count==null && controller.gameInfo.value.start_timer_count!=null){
-      // Fixed old time
       oldTime = DateTime.parse(controller.gameInfo.value.start_timer_count ?? "00:00:00");
 
-      // Update every second
       _timer = Timer.periodic(const Duration(seconds: 1), (_) {
         setState(() {
           now = DateTime.now();
@@ -93,25 +595,19 @@ class _GameScreenState extends State<GameMerchantList> {
       body: SafeArea(
         child: Stack(
           children: [
-            // Background Image
             Container(
               width: double.infinity,
               height: double.infinity,
               child: Image.asset(
                 "assets/images/m2/game_bg.png",
-                fit: BoxFit
-                    .cover, // Adjust to BoxFit.fill, BoxFit.contain, etc., as needed
+                fit: BoxFit.cover,
               ),
             ),
-            // Transparent Overlay
             Container(
               width: double.infinity,
               height: double.infinity,
-              color: Colors.grey
-                  .withOpacity(0.2), // Adjust opacity and color as needed
+              color: Colors.grey.withOpacity(0.2),
             ),
-
-            /// top navigation
             Container(
               margin: EdgeInsets.only(
                   top: MediaQuery.of(context).size.height * .05,
@@ -145,8 +641,6 @@ class _GameScreenState extends State<GameMerchantList> {
                 ],
               ),
             ),
-
-            /// spend logo
             Container(
               margin: EdgeInsets.only(
                   top: MediaQuery.of(context).size.height * .14,
@@ -156,27 +650,21 @@ class _GameScreenState extends State<GameMerchantList> {
                 "assets/images/m2/start_bg_logo.png",
               ),
             ),
-
-            /// glass transparent
-            /// main view
             Container(
                 margin: EdgeInsets.only(
                     left: 15,
                     bottom: 10,
                     top: MediaQuery.of(context).size.height * .27,
                     right: 15),
-                // Set the desired width
-
                 decoration: BoxDecoration(
                   image: DecorationImage(
                     image: AssetImage("assets/images/m3/merchant_bg.png"),
                     fit: BoxFit.fill,
                     colorFilter: ColorFilter.mode(
-                      Colors.black, // Solid black color
-                      BlendMode.srcIn, // Replaces the image with the color
+                      Colors.black,
+                      BlendMode.srcIn,
                     ),
                   ),
-                  // Rounded corners
                 ),
                 child: Stack(
                   children: [
@@ -242,8 +730,6 @@ class _GameScreenState extends State<GameMerchantList> {
                                                       SizedBox(
                                                         height: 14,
                                                       ),
-
-                                                      /// name
                                                       AppComponents.text(
                                                           data.outletName,
                                                           fontWeight:
@@ -253,7 +739,6 @@ class _GameScreenState extends State<GameMerchantList> {
                                                       SizedBox(
                                                         height: 6,
                                                       ),
-
                                                       AppComponents.text(
                                                           "Business Hours",
                                                           fontWeight:
@@ -262,8 +747,6 @@ class _GameScreenState extends State<GameMerchantList> {
                                                       SizedBox(
                                                         height: 4,
                                                       ),
-
-                                                      /// time
                                                       Row(
                                                         children: [
                                                           Icon(
@@ -289,7 +772,6 @@ class _GameScreenState extends State<GameMerchantList> {
                                                       SizedBox(
                                                         height: 6,
                                                       ),
-
                                                       Container(
                                                         width: 120,
                                                         margin: EdgeInsets.only(
@@ -306,32 +788,6 @@ class _GameScreenState extends State<GameMerchantList> {
                                                       SizedBox(
                                                         width: 8,
                                                       ),
-
-                                                      /// location
-                                                      // Row(
-                                                      //   children: [
-                                                      //     Icon(
-                                                      //       Icons
-                                                      //           .location_on_outlined,
-                                                      //       color: Colors.grey,
-                                                      //       size: 18,
-                                                      //     ),
-                                                      //     SizedBox(
-                                                      //       width: 4,
-                                                      //     ),
-                                                      //     Container(
-                                                      //       width: 120,
-                                                      //       child:  AppComponents.text(
-                                                      //           data.outletAddress,
-                                                      //           maxLine: 3,
-                                                      //           fontWeight:
-                                                      //           FontWeight.w400,
-                                                      //           color: Colors.black,
-                                                      //           size: 12),
-                                                      //     )
-                                                      //   ],
-                                                      // ),
-
                                                       SizedBox(
                                                         height: 4,
                                                       ),
@@ -345,10 +801,8 @@ class _GameScreenState extends State<GameMerchantList> {
                                                                   controller.appController.selectHalalNonHalaValue, () {
                                                                     setState(() {
                                                                       if(controller.gameInfo.value.end_timer_count==null && controller.gameInfo.value.start_timer_count!=null){
-                                                                        // Fixed old time
                                                                         oldTime = DateTime.parse(controller.gameInfo.value.start_timer_count ?? "00:00:00");
 
-                                                                        // Update every second
                                                                         _timer = Timer.periodic(const Duration(seconds: 1), (_) {
                                                                           setState(() {
                                                                             now = DateTime.now();
@@ -417,3 +871,4 @@ class _GameScreenState extends State<GameMerchantList> {
     );
   }
 }
+*/
