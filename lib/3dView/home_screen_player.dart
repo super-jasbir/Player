@@ -7,6 +7,7 @@ import 'package:player/app_controller.dart';
 import 'package:player/settings.dart';
 
 import '../data/local/shared_prefs.dart';
+import '../game/continue_game_screen.dart';
 import '../ui/game_option/game_option_screen.dart';
 import 'home_top_bar.dart';
 
@@ -30,23 +31,42 @@ class _HomeScreenPlayerState extends State<HomeScreenPlayer> {
   @override
   void initState() {
     super.initState();
-    // Load the profile (used for the top-left avatar) shortly after the
-    // first frame — keeps the original "fetch profile on open" behaviour.
+    // Fetch the profile once (for the top-left avatar id + picture), then use
+    // that id to load the participate list — no second profile call.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Timer(const Duration(seconds: 1), () {
-        appC.getProfile(() {});
+      appC.getProfile(() {
+        final id = appC.profileData?.id.toString() ?? "";
+        if (id.isNotEmpty) {
+          appC.getParticipateList(id, () {});
+        }
       });
     });
   }
 
-  /// Starts the game if the user is logged in, otherwise prompts to log in.
+  /// Play Game: if the player has already participated in games, open the
+  /// ContinueGame screen; otherwise start fresh via GameOptionScreen.
   Future<void> _startGame() async {
     final token = await SharedPref.getAccessToken();
-    if (token != null) {
-      Get.to(const GameOptionScreen());
-    } else {
+    if (token == null) {
       Fluttertoast.showToast(msg: "Please Login To Continue...");
+      return;
     }
+
+    final id = appC.profileData?.id.toString() ?? "";
+    if (id.isEmpty) {
+      // Profile not loaded yet — start fresh rather than block the user.
+      Get.to(const GameOptionScreen());
+      return;
+    }
+
+    // Refresh the participate list, then route based on the result.
+    appC.getParticipateList(id, () {
+      if (appC.participatedGames.isNotEmpty) {
+        Get.to(const ContinueGame());
+      } else {
+        Get.to(const GameOptionScreen());
+      }
+    });
   }
 
   void _comingSoon(String feature) {

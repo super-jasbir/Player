@@ -46,6 +46,10 @@ class SignupScreen extends GetView<SignupController> {
       Fluttertoast.showToast(msg: "Confirm password not matched");
       return;
     }
+    if (!controller.agree.value) {
+      Fluttertoast.showToast(msg: "Please accept the terms and conditions");
+      return;
+    }
     controller.signUp(() {
       Get.toNamed(AppRoutes.otpScreen,
           arguments: {"otpType": AppRoutes.signUpScreen});

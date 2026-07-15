@@ -15,7 +15,8 @@ class NewUserScreen extends GetView<NewUserController> {
 
   void _select(bool isNewUser) {
     SharedPref.saveIsNewUser(isNewUser);
-    Get.toNamed(AppRoutes.selectNation);
+    // New users pick their region first; existing users go straight to login.
+    Get.toNamed(isNewUser ? AppRoutes.selectNation : AppRoutes.loginScreen);
   }
 
   @override

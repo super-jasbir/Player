@@ -73,7 +73,7 @@ class _GameScreenState extends State<GameDetailScreen> {
                   padding: EdgeInsets.symmetric(horizontal: 32.w),
                   child: Image.asset(AppImages.spendrathonCard, fit: BoxFit.contain),
                 ),
-                SizedBox(height: 8.h),
+                SizedBox(height: 40.w),
                 Expanded(
                   child: SingleChildScrollView(
                     child: Column(
@@ -99,39 +99,60 @@ class _GameScreenState extends State<GameDetailScreen> {
                             children: [
                               // Circular back button.
                               _CircleBackButton(onTap: () => Get.back()),
-                              SizedBox(height: 10.h),
-                              Center(
-                                child: Text(
-                                  data.gameName ?? "",
-                                  style: TextStyle(
-                                    fontFamily: 'Inter',
-                                    fontSize: 22.sp,
-                                    fontWeight: FontWeight.w800,
-                                    color: _accentBlue,
-                                  ),
-                                ),
-                              ),
-                              SizedBox(height: 14.h),
-                              // Game banner image.
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(14.r),
-                                child: SizedBox(
-                                  width: double.infinity,
-                                  height: 150,
-                                  child: (data.gamePoster ?? "").toString().isNotEmpty
-                                      ? AppUtils.remoteImageLoader(
-                                          ApiEndPoint.imageBaseUrl + data.gamePoster)
-                                      : Image.asset(_sampleGame, fit: BoxFit.cover),
-                                ),
-                              ),
-                              SizedBox(height: 16.h),
-                              _detailRow("Number Of Stations",
-                                  data.totalOutlet.toString()),
-                              SizedBox(height: 12.h),
-                              _detailRow("Date Of Completion", data.gameEndDate ?? ""),
-                              SizedBox(height: 12.h),
-                              _detailRow("Winner Prize", data.prize ?? ""),
                               SizedBox(height: 18.h),
+                              // Inner detail card (name + image + details).
+                              Container(
+                                width: double.infinity,
+                                padding: EdgeInsets.fromLTRB(18.w, 20.h, 18.w, 24.h),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.18),
+                                  borderRadius: BorderRadius.circular(20.r),
+                                  border: Border.all(
+                                      color: Colors.white.withOpacity(0.55)),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Center(
+                                      child: Text(
+                                        data.gameName ?? "",
+                                        style: TextStyle(
+                                          fontFamily: 'Inter',
+                                          fontSize: 20.sp,
+                                          fontWeight: FontWeight.w800,
+                                          color: _accentBlue,
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(height: 2.h),
+                                    // Game banner image.
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(14.r),
+                                      child: SizedBox(
+                                        width: double.infinity,
+                                        height: 100,
+                                        child: (data.gamePoster ?? "")
+                                                .toString()
+                                                .isNotEmpty
+                                            ? AppUtils.remoteImageLoader(
+                                                ApiEndPoint.imageBaseUrl +
+                                                    data.gamePoster)
+                                            : Image.asset(_sampleGame,
+                                                fit: BoxFit.cover),
+                                      ),
+                                    ),
+                                    SizedBox(height: 26.w),
+                                    _detailRow("Number Of Stations",
+                                        data.totalOutlet.toString()),
+                                    SizedBox(height: 12.h),
+                                    _detailRow("Date Of Completion",
+                                        data.gameEndDate ?? ""),
+                                    SizedBox(height: 12.w),
+                                    _detailRow("Winner Prize", data.prize ?? ""),
+                                  ],
+                                ),
+                              ),
+                              SizedBox(height: 22.h),
                               // Terms & Conditions checkbox.
                               Row(
                                 children: [
@@ -216,17 +237,15 @@ class _GameScreenState extends State<GameDetailScreen> {
             ),
           ),
         ),
-        SizedBox(width: 12.w),
-        Flexible(
-          child: Text(
-            value,
-            textAlign: TextAlign.right,
-            style: TextStyle(
-              fontFamily: 'Inter',
-              fontSize: 16.sp,
-              fontWeight: FontWeight.w800,
-              color: _accentBlue,
-            ),
+
+        Text(
+          value,
+          textAlign: TextAlign.right,
+          style: TextStyle(
+            fontFamily: 'Inter',
+            fontSize: 16.sp,
+            fontWeight: FontWeight.w800,
+            color: _accentBlue,
           ),
         ),
       ],

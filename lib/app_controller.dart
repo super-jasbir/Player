@@ -4,6 +4,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:player/app_constant/chinese_constants.dart';
 import 'package:player/data/modal/get_profile_response.dart';
+import 'package:player/data/modal/leaderboard/LeaderboardResponse.dart';
 import 'package:player/data/network/api_endpoints.dart';
 import 'package:player/data/network/api_service.dart';
 
@@ -29,6 +30,9 @@ class AppController extends GetxController{
   ProfileData? profileData;
   var hasData = false.obs;
   var uploadedImage = "".obs;
+
+  /// Games the player has already participated in (game-participate-list API).
+  var participatedGames = <LeaderboardList>[].obs;
   selectLanguage(String language){
     if(language =="Chinese"){
       /// chienese
@@ -54,6 +58,25 @@ class AppController extends GetxController{
       }else{
         hasData.value  = false;
       }
+    });
+  }
+
+  /// Fetches the games the player has already participated in. Uses the id
+  /// already obtained from [getProfile] — does NOT call the profile API again.
+  getParticipateList(String playerId, VoidCallback callback){
+    apiService
+        .getRequest("${ApiEndPoint.leaderboardList}player_id=$playerId",
+            isBearer: true)
+        .then((value) {
+      if (value.data != null) {
+        participatedGames.value =
+            LeaderboardResponse.fromJson(value.data as Map<String, dynamic>)
+                    .data ??
+                [];
+      } else {
+        participatedGames.value = [];
+      }
+      callback.call();
     });
   }
 }

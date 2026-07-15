@@ -189,6 +189,19 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                   ),
                   SizedBox(height: 16.h),
 
+                  // Postal code — entering 6 digits triggers the address lookup
+                  // API which auto-fills the address field below.
+                  _label(Icons.location_on_outlined, "Postal Code"),
+                  SizedBox(height: 8.h),
+                  AppInputField(
+                    controller: controller.postalC,
+                    hint: "Enter Postal Code",
+                    icon: Icons.location_on_outlined,
+                    keyboardType: TextInputType.number,
+                    borderColor: _fieldBorder,
+                  ),
+                  SizedBox(height: 16.h),
+
                   // Address
                   _label(Icons.home_outlined, l10n.addressLabel),
                   SizedBox(height: 8.h),

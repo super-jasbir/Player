@@ -24,6 +24,7 @@ import 'package:player/ui/select_new_user/new_user_screen.dart';
 import 'package:player/ui/select_nationlity/select_nationlity_binding.dart';
 import 'package:player/ui/select_nationlity/select_nationlity_controller.dart';
 import 'package:player/ui/select_nationlity/select_nationlity_screen.dart';
+import 'package:player/ui/registration_success/registration_success_screen.dart';
 import 'package:player/ui/signup/signup_binding.dart';
 import 'package:player/ui/signup/signup_screen.dart';
 
@@ -98,6 +99,11 @@ class AppPages {
       page: () => CreateProfileScreen(),
       binding: CreateProfileBinding(),
       transition: Transition.leftToRightWithFade, // Add transition
+    ),
+    GetPage(
+      name: AppRoutes.registrationSuccess,
+      page: () => const RegistrationSuccessScreen(),
+      transition: Transition.rightToLeftWithFade, // Add transition
     ),
     GetPage(
       name: AppRoutes.updateProfile,

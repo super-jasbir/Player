@@ -10,7 +10,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:player/base_controller.dart';
 import 'package:player/data/modal/merchant/merchant_list.dart';
-import '../3dView/home_screen_player.dart';
 import '../data/local/shared_prefs.dart';
 import '../data/modal/GetMerchantPaymentResponse.dart';
 import '../data/modal/MySteryBoxDetailsResponse.dart';
@@ -21,6 +20,7 @@ import '../data/modal/leaderboard/LeaderboardDetailResponse.dart';
 import '../data/modal/leaderboard/LeaderboardResponse.dart';
 import '../data/modal/signup_response.dart';
 import '../data/network/api_endpoints.dart';
+import '../routes/app_routes.dart';
 import '../data/network/api_service.dart';
 import '../utils/app_color.dart';
 
@@ -49,7 +49,10 @@ class MerchantController extends BaseController {
       if (value.data != null) {
         var data = LogoutResponse.fromJson(value.data!);
         // Fluttertoast.showToast(msg: data.message ?? "");
-        Get.offAll(HomeScreenPlayer());
+        // Clear the saved session and return to the login screen so the user
+        // can sign in again.
+        SharedPref.clearPref();
+        Get.offAllNamed(AppRoutes.loginScreen);
       } else {
         Fluttertoast.showToast(msg: value.error.toString());
       }

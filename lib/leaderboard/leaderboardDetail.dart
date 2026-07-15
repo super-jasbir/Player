@@ -22,12 +22,15 @@ class _GameScreenState extends State<LeaderboardDetail> {
 
   @override
   void initState() {
-    controller.leaderboardDetail(widget.ID ?? "",() {
-      setState(() {
-
+    super.initState();
+    // Defer until after the first frame — leaderboardDetail() triggers
+    // getProfile() which updates observables, and doing that during build
+    // throws "setState() called during build".
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      controller.leaderboardDetail(widget.ID ?? "", () {
+        if (mounted) setState(() {});
       });
     });
-    super.initState();
   }
 
   @override

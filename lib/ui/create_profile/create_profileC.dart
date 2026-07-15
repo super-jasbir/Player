@@ -81,7 +81,8 @@ class CreateProfileController extends BaseController{
     };
     apiService.postRequest(ApiEndPoint.register, req).then((value) {
       if(value.data !=null){
-        Get.offAllNamed(AppRoutes.loginScreen);
+        // Show the confirmation screen; it routes on to login from there.
+        Get.offAllNamed(AppRoutes.registrationSuccess);
       }
     });
   }
