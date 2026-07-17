@@ -47,5 +47,17 @@
   "foodOmnivorous": "Omnivor",
   "foodHalal": "Halal",
   "foodNonHalal": "Bukan Halal",
-  "verify": "Sahkan"
+  "verify": "Sahkan",
+  "settingTitle": "TETAPAN",
+  "soundMusic": "BUNYI/MUZIK",
+  "language": "BAHASA",
+  "selectLanguage": "Pilih Bahasa",
+  "languageEnglish": "Inggeris",
+  "languageChinese": "Cina",
+  "locationSetting": "LOKASI",
+  "biometricLock": "KUNCI BIOMETRIK",
+  "contact": "HUBUNGI",
+  "logOut": "LOG KELUAR",
+  "referral": "RUJUKAN",
+  "home": "UTAMA"
 }

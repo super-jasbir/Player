@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:player/common_widgets.dart';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:dio/dio.dart';
@@ -165,7 +167,6 @@ class _LocationMapState extends State<LocationMap> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Locations Map")),
       body: Stack(
         children: [
           GoogleMap(
@@ -179,12 +180,43 @@ class _LocationMapState extends State<LocationMap> {
             myLocationEnabled: widget.currentLocation == null,
             myLocationButtonEnabled: true,
             markers: _markers,
+            // Keeps the map clear of the floating back button.
+            padding: const EdgeInsets.only(top: 64),
           ),
           if (_isLoading)
             const Center(
               child: CircularProgressIndicator(),
             ),
+          _backButton(),
         ],
+      ),
+    );
+  }
+
+  /// Floating back control, styled like the other new-UI screens instead of a
+  /// Material app bar so the map stays full-bleed.
+  Widget _backButton() {
+    return SafeArea(
+      child: Padding(
+        padding: EdgeInsets.only(left: 12.w, top: 8.h),
+        child: Align(
+          alignment: Alignment.topLeft,
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.92),
+              borderRadius: BorderRadius.circular(20.r),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.18),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
+            child: const BackToLoginButton(text: 'Back'),
+          ),
+        ),
       ),
     );
   }

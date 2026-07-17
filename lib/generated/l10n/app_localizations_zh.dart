@@ -151,4 +151,40 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get verify => '验证';
+
+  @override
+  String get settingTitle => '设置';
+
+  @override
+  String get soundMusic => '音效/音乐';
+
+  @override
+  String get language => '语言';
+
+  @override
+  String get selectLanguage => '选择语言';
+
+  @override
+  String get languageEnglish => '英文';
+
+  @override
+  String get languageChinese => '中文';
+
+  @override
+  String get locationSetting => '位置';
+
+  @override
+  String get biometricLock => '生物识别锁';
+
+  @override
+  String get contact => '联系我们';
+
+  @override
+  String get logOut => '退出登录';
+
+  @override
+  String get referral => '推荐';
+
+  @override
+  String get home => '主页';
 }

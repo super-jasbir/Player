@@ -120,12 +120,12 @@ class _Header extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(Icons.arrow_back, size: 20, color: Color(0xFF0288D1)),
-                    SizedBox(width: 4),
+                    SizedBox(width: 3),
                     Text(
                       "Back",
                       style: TextStyle(
                         fontFamily: 'Inter',
-                        fontSize: 15,
+                        fontSize: 14,
                         fontWeight: FontWeight.w600,
                         color: Color(0xFF0288D1),
                       ),
@@ -139,7 +139,7 @@ class _Header extends StatelessWidget {
             "TOURISM GAMES",
             style: TextStyle(
               fontFamily: 'Inter',
-              fontSize: 22,
+              fontSize: 18,
               fontWeight: FontWeight.w800,
               color: Color(0xFF1E88E5),
               letterSpacing: 0.3,

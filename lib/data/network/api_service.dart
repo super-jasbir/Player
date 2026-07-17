@@ -1,9 +1,45 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
+// dio and get both export Response/FormData/MultipartFile — this file is a dio
+// wrapper, so get's versions are hidden.
+import 'package:get/get.dart' hide FormData, MultipartFile, Response;
 import '../local/shared_prefs.dart';
+import '../../routes/app_routes.dart';
 import 'api_endpoints.dart';
 import 'network_wrapper.dart';
 
+/// Endpoints that legitimately answer 401 while the user is signed out — a
+/// wrong password must surface on the login form, not bounce off it.
+const List<String> _authEndpoints = [
+  ApiEndPoint.login,
+  ApiEndPoint.signUp,
+  ApiEndPoint.verifyOtp,
+  ApiEndPoint.resetPassword,
+  ApiEndPoint.forgetPass,
+  ApiEndPoint.register,
+];
+
+/// Set while the app is on its way to the login screen, so that a burst of
+/// parallel 401s (the home screen fires several calls at once) triggers a
+/// single redirect instead of one per response.
+bool _redirectingToLogin = false;
+
+bool _isAuthEndpoint(String path) =>
+    _authEndpoints.any((e) => path.startsWith(e.split('?').first));
+
+/// Drops the session and sends the user to the login screen. Called for any
+/// 401 outside the auth endpoints: an empty or rejected token both mean the
+/// app cannot show signed-in content.
+Future<void> _handleUnauthenticated(String path) async {
+  if (_redirectingToLogin) return;
+  if (_isAuthEndpoint(path)) return;
+  if (Get.currentRoute == AppRoutes.loginScreen) return;
+
+  _redirectingToLogin = true;
+  await SharedPref.clearPref();
+  Get.offAllNamed(AppRoutes.loginScreen);
+  _redirectingToLogin = false;
+}
 
 class ApiService {
   Dio? _dio;
@@ -26,7 +62,9 @@ class ApiService {
         return handler.next(response);
       },
       onError: (DioException e, handler) {
-        e;
+        if (e.response?.statusCode == 401) {
+          _handleUnauthenticated(e.requestOptions.path);
+        }
         return handler.next(e);
       },
     ));

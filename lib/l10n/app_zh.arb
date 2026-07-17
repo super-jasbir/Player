@@ -47,5 +47,17 @@
   "foodOmnivorous": "杂食",
   "foodHalal": "清真",
   "foodNonHalal": "非清真",
-  "verify": "验证"
+  "verify": "验证",
+  "settingTitle": "设置",
+  "soundMusic": "音效/音乐",
+  "language": "语言",
+  "selectLanguage": "选择语言",
+  "languageEnglish": "英文",
+  "languageChinese": "中文",
+  "locationSetting": "位置",
+  "biometricLock": "生物识别锁",
+  "contact": "联系我们",
+  "logOut": "退出登录",
+  "referral": "推荐",
+  "home": "主页"
 }

@@ -152,4 +152,40 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get verify => 'Verify';
+
+  @override
+  String get settingTitle => 'SETTING';
+
+  @override
+  String get soundMusic => 'SOUND/MUSIC';
+
+  @override
+  String get language => 'LANGUAGE';
+
+  @override
+  String get selectLanguage => 'Select Language';
+
+  @override
+  String get languageEnglish => 'English';
+
+  @override
+  String get languageChinese => 'Chinese';
+
+  @override
+  String get locationSetting => 'LOCATION';
+
+  @override
+  String get biometricLock => 'BIOMETRIC LOCK';
+
+  @override
+  String get contact => 'CONTACT';
+
+  @override
+  String get logOut => 'LOG OUT';
+
+  @override
+  String get referral => 'REFERRAL';
+
+  @override
+  String get home => 'HOME';
 }

@@ -7,6 +7,7 @@ import 'package:player/data/network/api_endpoints.dart';
 import 'package:player/game/game_controller.dart';
 
 import '../3dView/home_top_bar.dart';
+import '../core/theme/app_images.dart';
 import '../routes/app_routes.dart';
 
 class GameListScreen extends StatefulWidget {
@@ -57,12 +58,17 @@ class _GameScreenState extends State<GameListScreen> {
               children: [
                 const HomeTopBar(showNotifications: false),
                 SizedBox(height: 12.h),
-                _signboard(),
+                // Spendrathon logo (reused from the game detail screen).
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 32.w),
+                  child:
+                      Image.asset(AppImages.spendrathonCard, fit: BoxFit.contain),
+                ),
                 SizedBox(height: 12.h),
                 const Align(
                   alignment: Alignment.centerLeft,
                   child: Padding(
-                    padding: EdgeInsets.only(left: 12),
+                    padding: EdgeInsets.only(left: 6,right: 12),
                     child: BackToLoginButton(text: 'Back'),
                   ),
                 ),

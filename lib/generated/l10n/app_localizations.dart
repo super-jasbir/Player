@@ -387,6 +387,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Verify'**
   String get verify;
+
+  /// No description provided for @settingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'SETTING'**
+  String get settingTitle;
+
+  /// No description provided for @soundMusic.
+  ///
+  /// In en, this message translates to:
+  /// **'SOUND/MUSIC'**
+  String get soundMusic;
+
+  /// No description provided for @language.
+  ///
+  /// In en, this message translates to:
+  /// **'LANGUAGE'**
+  String get language;
+
+  /// No description provided for @selectLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Language'**
+  String get selectLanguage;
+
+  /// No description provided for @languageEnglish.
+  ///
+  /// In en, this message translates to:
+  /// **'English'**
+  String get languageEnglish;
+
+  /// No description provided for @languageChinese.
+  ///
+  /// In en, this message translates to:
+  /// **'Chinese'**
+  String get languageChinese;
+
+  /// No description provided for @locationSetting.
+  ///
+  /// In en, this message translates to:
+  /// **'LOCATION'**
+  String get locationSetting;
+
+  /// No description provided for @biometricLock.
+  ///
+  /// In en, this message translates to:
+  /// **'BIOMETRIC LOCK'**
+  String get biometricLock;
+
+  /// No description provided for @contact.
+  ///
+  /// In en, this message translates to:
+  /// **'CONTACT'**
+  String get contact;
+
+  /// No description provided for @logOut.
+  ///
+  /// In en, this message translates to:
+  /// **'LOG OUT'**
+  String get logOut;
+
+  /// No description provided for @referral.
+  ///
+  /// In en, this message translates to:
+  /// **'REFERRAL'**
+  String get referral;
+
+  /// No description provided for @home.
+  ///
+  /// In en, this message translates to:
+  /// **'HOME'**
+  String get home;
 }
 
 class _AppLocalizationsDelegate

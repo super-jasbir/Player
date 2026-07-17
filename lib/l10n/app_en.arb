@@ -47,5 +47,17 @@
   "foodOmnivorous": "Omnivorous",
   "foodHalal": "Halal",
   "foodNonHalal": "Non-Halal",
-  "verify": "Verify"
+  "verify": "Verify",
+  "settingTitle": "SETTING",
+  "soundMusic": "SOUND/MUSIC",
+  "language": "LANGUAGE",
+  "selectLanguage": "Select Language",
+  "languageEnglish": "English",
+  "languageChinese": "Chinese",
+  "locationSetting": "LOCATION",
+  "biometricLock": "BIOMETRIC LOCK",
+  "contact": "CONTACT",
+  "logOut": "LOG OUT",
+  "referral": "REFERRAL",
+  "home": "HOME"
 }

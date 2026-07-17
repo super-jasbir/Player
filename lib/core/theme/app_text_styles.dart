@@ -24,12 +24,15 @@ class AppTextStyles {
     );
   }
 
-  static TextStyle heading = _base(size: 24, weight: FontWeight.w700);
-  static TextStyle title = _base(size: 20, weight: FontWeight.w700);
-  static TextStyle subtitle = _base(size: 16, weight: FontWeight.w600);
-  static TextStyle body = _base(size: 14, weight: FontWeight.w400);
-  static TextStyle bodyMedium = _base(size: 14, weight: FontWeight.w500);
-  static TextStyle caption = _base(size: 12, weight: FontWeight.w400);
-  static TextStyle button =
+  // Getters, not fields: a static field would cache `.sp` at first access, and
+  // if that happened before ScreenUtil was initialised every size would freeze
+  // at 0 for the rest of the run (invisible text).
+  static TextStyle get heading => _base(size: 24, weight: FontWeight.w700);
+  static TextStyle get title => _base(size: 20, weight: FontWeight.w700);
+  static TextStyle get subtitle => _base(size: 16, weight: FontWeight.w600);
+  static TextStyle get body => _base(size: 14, weight: FontWeight.w400);
+  static TextStyle get bodyMedium => _base(size: 14, weight: FontWeight.w500);
+  static TextStyle get caption => _base(size: 12, weight: FontWeight.w400);
+  static TextStyle get button =>
       _base(size: 16, weight: FontWeight.w700, color: Colors.white);
 }

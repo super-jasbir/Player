@@ -152,7 +152,9 @@ class OutletDetail {
     startHours: json["startHours"],
     endHours: json["endHours"],
     minimumSpending: json["minimumSpending"],
-    isGameStarted: json["is_game_started"],
+    isGameStarted: json["is_game_started"] is int
+        ? json["is_game_started"]
+        : int.tryParse(json["is_game_started"]?.toString() ?? ""),
   );
 
   Map<String, dynamic> toJson() => {

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
@@ -9,6 +10,8 @@ import 'package:get/get.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:player/app_controller.dart';
 import 'package:player/common_widgets.dart';
+import 'package:player/core/theme/app_text_styles.dart';
+import 'package:player/data/modal/GetMerchantPaymentResponse.dart';
 import 'package:player/data/modal/game/game_detail_response.dart' show OutletDetail;
 import 'package:player/game/merchant/GameMerchantDetail.dart';
 import 'package:player/merchant/merchant_controller.dart';
@@ -27,6 +30,20 @@ import '../game_controller.dart';
 /// Accent blue used for titles / links (matches the login screen).
 const Color _accentBlue = Color(0xFF0288D1);
 
+/// Muted grey used for the text of an already-completed shop.
+const Color _completedGrey = Color(0xFF9AA0A6);
+
+/// Flat green of the "COMPLETE" badge on a finished shop.
+const Color _completeGreen = Color(0xFF6EF03F);
+
+/// Points shown after completing a shop. Static for now — the `commission` the
+/// payment API returns is always 0, so the real value is not wired up yet.
+const int _earnedPoints = 45;
+
+/// Bonus shown after a successful share. Static for now — nothing credits it
+/// server-side yet, so the player's balance does not actually change.
+const int _sharePoints = 20;
+
 class GameMerchantList extends StatefulWidget {
   const GameMerchantList({super.key});
 
@@ -43,8 +60,17 @@ class _GameScreenState extends State<GameMerchantList> {
   DateTime newTime = DateTime.now();
   Timer? _timer;
   Timer? _qrPollTimer;
+
+  /// Incremented every time a QR flow starts or is cancelled. Async callbacks
+  /// capture the value at their start and bail out if it has moved on, so a
+  /// late API response cannot act on a flow the player already backed out of.
+  int _qrSession = 0;
   Duration diff = Duration.zero;
   DateTime now = DateTime.now();
+
+  /// Local path of the selfie captured for the current outlet, attached to the
+  /// share sheet in the points dialog.
+  String _capturedImagePath = "";
 
   @override
   void initState() {
@@ -61,7 +87,7 @@ class _GameScreenState extends State<GameMerchantList> {
   @override
   void dispose() {
     _timer?.cancel();
-    _qrPollTimer?.cancel();
+    _cancelQrSession();
     super.dispose();
   }
 
@@ -107,17 +133,30 @@ class _GameScreenState extends State<GameMerchantList> {
   void _showQrFlow(OutletDetail data) {
     controller.outletDetail = data;
     merchantC.playerDetailsInfo.value = "";
-    _openQrDialog();
+    // Drop any amount left over from a previous outlet so a stale value cannot
+    // be mistaken for a payment against this one.
+    merchantC.merchantPaymentResponse?.value = GetMerchantPaymentResponse();
+
+    final int session = ++_qrSession;
+    _openQrDialog(session);
+
     merchantC.getPlayerDetail(
         controller.gameData?.gameUniqueId ?? "", data.outletUniqueId, () {
+      if (!mounted || session != _qrSession) return;
       _qrPollTimer?.cancel();
       _qrPollTimer = Timer.periodic(const Duration(seconds: 5), (t) {
+        if (session != _qrSession) {
+          t.cancel();
+          return;
+        }
         merchantC.getPlayerPaymentDetail(controller.gameData?.gameUniqueId ?? "",
             data.outletId.toString(), () {
+          if (!mounted || session != _qrSession) return;
           final paid = merchantC.merchantPaymentResponse?.value.data?.amountPaid;
           if (paid != null && paid.isNotEmpty) {
             t.cancel();
-            if (mounted && Navigator.canPop(context)) {
+            _cancelQrSession();
+            if (Navigator.canPop(context)) {
               Navigator.of(context).pop(); // close QR dialog
             }
             _showCongratsDialog();
@@ -127,14 +166,28 @@ class _GameScreenState extends State<GameMerchantList> {
     });
   }
 
-  void _openQrDialog() {
+  /// Ends the current QR flow: stops polling and invalidates the session so any
+  /// in-flight response from it is ignored.
+  void _cancelQrSession() {
+    _qrPollTimer?.cancel();
+    _qrPollTimer = null;
+    _qrSession++;
+  }
+
+  void _openQrDialog(int session) {
     showGeneralDialog(
       context: context,
       barrierDismissible: false,
       barrierLabel: "QR",
       barrierColor: Colors.black.withOpacity(0.45),
       pageBuilder: (ctx, _, __) {
-        return Material(
+        return PopScope(
+          // The hardware / gesture back also has to end the flow, not just the
+          // "Back" label below.
+          onPopInvokedWithResult: (didPop, _) {
+            if (didPop && session == _qrSession) _cancelQrSession();
+          },
+          child: Material(
           type: MaterialType.transparency,
           child: Stack(
           children: [
@@ -178,7 +231,7 @@ class _GameScreenState extends State<GameMerchantList> {
                     SizedBox(height: 44.h),
                     InkWell(
                       onTap: () {
-                        _qrPollTimer?.cancel();
+                        _cancelQrSession();
                         Navigator.of(ctx).pop();
                       },
                       child: Row(
@@ -204,6 +257,7 @@ class _GameScreenState extends State<GameMerchantList> {
               ),
             ),
           ],
+        ),
         ),
         );
       },
@@ -285,11 +339,13 @@ class _GameScreenState extends State<GameMerchantList> {
     );
   }
 
-  // ---- After the congrats dialog: open the camera, upload the selfie, hit
-  // ---- the game-completion API, then show the "points earned" dialog. ----
+  // ---- After the congrats dialog: open the camera and upload the selfie, then
+  // ---- show the amount-paid dialog. The completion API is NOT called here —
+  // ---- it only fires once the player taps SUBMIT. ----
   Future<void> _captureAndComplete() async {
     // Fresh capture each time.
     merchantC.uploadedProfileImage.value = "";
+    _capturedImagePath = "";
     await merchantC.pickImage(camera: true);
 
     // User cancelled the camera / upload failed.
@@ -298,6 +354,110 @@ class _GameScreenState extends State<GameMerchantList> {
       return;
     }
 
+    // Local file of the capture, kept so it can be attached to the share sheet.
+    _capturedImagePath = merchantC.path.value;
+    _showAmountDialog();
+  }
+
+  /// Shows what the player paid at the merchant alongside the selfie they just
+  /// captured. SUBMIT is what triggers the game-completion API.
+  void _showAmountDialog() {
+    final String amount =
+        merchantC.merchantPaymentResponse?.value.data?.amountPaid ?? "0";
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierLabel: "Amount",
+      barrierColor: Colors.black.withOpacity(0.45),
+      pageBuilder: (ctx, _, __) {
+        return Material(
+          type: MaterialType.transparency,
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+                  child: Container(color: Colors.black.withOpacity(0.10)),
+                ),
+              ),
+              Center(
+                child: Container(
+                  margin: EdgeInsets.symmetric(horizontal: 24.w),
+                  padding: EdgeInsets.fromLTRB(24.w, 28.h, 24.w, 24.h),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.92),
+                    borderRadius: BorderRadius.circular(24.r),
+                    boxShadow: const [
+                      BoxShadow(
+                          color: Colors.black26,
+                          blurRadius: 20,
+                          offset: Offset(0, 8)),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        "AMOUNT PAID",
+                        style: TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 26.sp,
+                          fontWeight: FontWeight.w900,
+                          color: _accentBlue,
+                        ),
+                      ),
+                      SizedBox(height: 6.h),
+                      Text(
+                        "SG \$ $amount",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 22.sp,
+                          fontWeight: FontWeight.w800,
+                          color: const Color(0xFF374151),
+                        ),
+                      ),
+                      SizedBox(height: 6.h),
+                      Text(
+                        "Submit to complete this shop.",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 14.sp,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                      SizedBox(height: 20.h),
+                      if (_capturedImagePath.isNotEmpty)
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(16.r),
+                          child: Image.file(
+                            File(_capturedImagePath),
+                            height: 160,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      SizedBox(height: 24.h),
+                      AppButton(
+                        title: "SUBMIT",
+                        onPressed: () {
+                          Navigator.of(ctx).pop();
+                          _submitCompletion();
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  /// Fires the game-completion API and celebrates on success.
+  void _submitCompletion() {
     // Same "is this the last outlet?" logic as the old GameMerchantDetail.
     bool lastItem = false;
     final int completedCount =
@@ -317,17 +477,14 @@ class _GameScreenState extends State<GameMerchantList> {
       () {
         // Refresh the merchant list behind the dialog, then celebrate.
         _refreshGameDetail();
-        final raw =
-            merchantC.merchantPaymentResponse?.value.data?.commission ?? "0";
-        final points = double.tryParse(raw)?.toStringAsFixed(0) ?? raw;
-        _showPointsDialog(points);
+        _showPointsDialog();
       },
     );
   }
 
-  void _showPointsDialog(String points) {
+  void _showPointsDialog() {
     final String shareText =
-        "I just earned $points points on Spendrathon! Join me and start turning your spending into rewards.";
+        "I just earned $_earnedPoints points on Spendrathon! Join me and start turning your spending into rewards.";
     showGeneralDialog(
       context: context,
       barrierDismissible: false,
@@ -372,7 +529,7 @@ class _GameScreenState extends State<GameMerchantList> {
                       ),
                       SizedBox(height: 6.h),
                       Text(
-                        "You earned $points points.",
+                        "You earned $_earnedPoints points.",
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontFamily: 'Inter',
@@ -462,8 +619,123 @@ class _GameScreenState extends State<GameMerchantList> {
     );
   }
 
-  void _share(String text) {
-    SharePlus.instance.share(ShareParams(text: text));
+  /// Shares the selfie + text, then — once the player comes back from WhatsApp
+  /// (or wherever they shared) — celebrates with the share-successful dialog.
+  Future<void> _share(String text) async {
+    // Attach the selfie when it is still on disk; text-only otherwise.
+    final bool hasImage =
+        _capturedImagePath.isNotEmpty && File(_capturedImagePath).existsSync();
+    final params = hasImage
+        ? ShareParams(text: text, files: [XFile(_capturedImagePath)])
+        : ShareParams(text: text);
+
+    ShareResult result;
+    try {
+      result = await SharePlus.instance.share(params);
+    } catch (_) {
+      return; // Share sheet failed to open — stay on the points dialog.
+    }
+
+    // Backing out of the share sheet earns nothing; let them try again.
+    if (result.status == ShareResultStatus.dismissed) return;
+    if (!mounted) return;
+
+    // Replace the points dialog with the share-successful one.
+    Navigator.of(context).pop();
+    _showShareSuccessDialog();
+  }
+
+  void _showShareSuccessDialog() {
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierLabel: "Shared",
+      barrierColor: Colors.black.withOpacity(0.45),
+      pageBuilder: (ctx, _, __) {
+        return Material(
+          type: MaterialType.transparency,
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+                  child: Container(color: Colors.black.withOpacity(0.10)),
+                ),
+              ),
+              Center(
+                child: Container(
+                  margin: EdgeInsets.symmetric(horizontal: 24.w),
+                  padding: EdgeInsets.fromLTRB(24.w, 28.h, 24.w, 20.h),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.92),
+                    borderRadius: BorderRadius.circular(24.r),
+                    boxShadow: const [
+                      BoxShadow(
+                          color: Colors.black26,
+                          blurRadius: 20,
+                          offset: Offset(0, 8)),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        "SHARE SUCCESSFUL!",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 26.sp,
+                          fontWeight: FontWeight.w900,
+                          color: _accentBlue,
+                        ),
+                      ),
+                      SizedBox(height: 6.h),
+                      Text(
+                        "You earned $_sharePoints extra points for sharing.",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 14.sp,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                      SizedBox(height: 20.h),
+                      Image.asset("assets/images/home/ic_selfi.png",
+                          height: 140, fit: BoxFit.contain),
+                      SizedBox(height: 24.h),
+                      AppButton(
+                        title: "DONE",
+                        onPressed: () {
+                          Navigator.of(ctx).pop();
+                          Get.offAll(HomeScreenPlayer());
+                        },
+                      ),
+                      SizedBox(height: 12.h),
+                      InkWell(
+                        onTap: () {
+                          Navigator.of(ctx).pop();
+                          Get.offAll(HomeScreenPlayer());
+                        },
+                        child: Text(
+                          "CLOSE",
+                          style: TextStyle(
+                            fontFamily: 'Inter',
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.grey.shade600,
+                            decoration: TextDecoration.underline,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   Widget _socialButton({
@@ -640,12 +912,33 @@ class _GameScreenState extends State<GameMerchantList> {
     );
   }
 
+  /// Static badge shown in place of "SHOW QR" once a shop is done. Not a button
+  /// — there is nothing left to do on a completed shop.
+  Widget _completeBadge() {
+    return Container(
+      width: 118,
+      height: 60.h,
+      decoration: BoxDecoration(
+        color: _completeGreen,
+        borderRadius: BorderRadius.circular(18.r),
+      ),
+      alignment: Alignment.center,
+      child: Text("COMPLETE", style: AppTextStyles.button),
+    );
+  }
+
   Widget _merchantCard(OutletDetail data) {
+    final bool completed = data.isGameStarted == 1;
+    // Completed shops are shown in a muted grey; pending ones keep the blue accent.
+    final Color titleColor = completed ? _completedGrey : _accentBlue;
+    final Color bodyColor =
+        completed ? _completedGrey : const Color(0xFF374151);
+
     return Container(
       margin: EdgeInsets.only(bottom: 12.h),
       padding: EdgeInsets.all(14.w),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.92),
+        color: Colors.white.withOpacity(completed ? 0.75 : 0.92),
         borderRadius: BorderRadius.circular(16.r),
         boxShadow: [
           BoxShadow(
@@ -667,7 +960,7 @@ class _GameScreenState extends State<GameMerchantList> {
                     fontFamily: 'Inter',
                     fontSize: 16.sp,
                     fontWeight: FontWeight.w700,
-                    color: _accentBlue,
+                    color: titleColor,
                   ),
                 ),
                 SizedBox(height: 4.h),
@@ -676,7 +969,7 @@ class _GameScreenState extends State<GameMerchantList> {
                   style: TextStyle(
                     fontFamily: 'Inter',
                     fontSize: 13.sp,
-                    color: const Color(0xFF374151),
+                    color: bodyColor,
                   ),
                 ),
                 SizedBox(height: 2.h),
@@ -685,7 +978,7 @@ class _GameScreenState extends State<GameMerchantList> {
                   style: TextStyle(
                     fontFamily: 'Inter',
                     fontSize: 13.sp,
-                    color: const Color(0xFF374151),
+                    color: bodyColor,
                   ),
                 ),
                 SizedBox(height: 6.h),
@@ -700,9 +993,9 @@ class _GameScreenState extends State<GameMerchantList> {
                       fontFamily: 'Inter',
                       fontSize: 13.sp,
                       fontWeight: FontWeight.w600,
-                      color: _accentBlue,
+                      color: titleColor,
                       decoration: TextDecoration.underline,
-                      decorationColor: _accentBlue,
+                      decorationColor: titleColor,
                     ),
                   ),
                 ),
@@ -710,12 +1003,14 @@ class _GameScreenState extends State<GameMerchantList> {
             ),
           ),
           SizedBox(width: 12.w),
-          AppButton(
-            title: "SHOW QR",
-            width: 118,
-            height: 60,
-            onPressed: () => _showQrFlow(data),
-          ),
+          completed
+              ? _completeBadge()
+              : AppButton(
+                  title: "SHOW QR",
+                  width: 118,
+                  height: 60,
+                  onPressed: () => _showQrFlow(data),
+                ),
         ],
       ),
     );

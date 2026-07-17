@@ -148,6 +148,10 @@ class AppButton extends StatelessWidget {
   /// Corner radius (Figma: 18).
   final double radius;
 
+  /// Colour of the drop shadow; defaults to the blue that matches
+  /// [gradientColors]. Override it when the button is not blue.
+  final Color shadowColor;
+
   const AppButton({
     super.key,
     required this.title,
@@ -161,6 +165,7 @@ class AppButton extends StatelessWidget {
     this.radius = 18,
     // Figma: light sky -> azure (top to bottom).
     this.gradientColors = const [Color(0xFFB3E5FC), Color(0xFF29B6F6)],
+    this.shadowColor = const Color(0x600288D1), // #0288D1 @ ~37.65%
   });
 
   @override
@@ -189,18 +194,18 @@ class AppButton extends StatelessWidget {
         color: disabled ? const Color(0xFFCED4DA) : null,
         boxShadow: disabled
             ? null
-            : const [
+            : [
                 // Top inner-ish highlight.
-                BoxShadow(
+                const BoxShadow(
                   color: Color(0x80FFFFFF), // white @ 50.2%
                   offset: Offset(0, 1),
                 ),
-                // Blue drop shadow.
+                // Coloured drop shadow, tinted to match the button.
                 BoxShadow(
-                  color: Color(0x600288D1), // #0288D1 @ ~37.65%
+                  color: shadowColor,
                   blurRadius: 20,
                   spreadRadius: -2,
-                  offset: Offset(0, 6),
+                  offset: const Offset(0, 6),
                 ),
               ],
       ),

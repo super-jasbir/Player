@@ -153,4 +153,40 @@ class AppLocalizationsMs extends AppLocalizations {
 
   @override
   String get verify => 'Sahkan';
+
+  @override
+  String get settingTitle => 'TETAPAN';
+
+  @override
+  String get soundMusic => 'BUNYI/MUZIK';
+
+  @override
+  String get language => 'BAHASA';
+
+  @override
+  String get selectLanguage => 'Pilih Bahasa';
+
+  @override
+  String get languageEnglish => 'Inggeris';
+
+  @override
+  String get languageChinese => 'Cina';
+
+  @override
+  String get locationSetting => 'LOKASI';
+
+  @override
+  String get biometricLock => 'KUNCI BIOMETRIK';
+
+  @override
+  String get contact => 'HUBUNGI';
+
+  @override
+  String get logOut => 'LOG KELUAR';
+
+  @override
+  String get referral => 'RUJUKAN';
+
+  @override
+  String get home => 'UTAMA';
 }
