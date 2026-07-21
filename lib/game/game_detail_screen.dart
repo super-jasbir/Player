@@ -73,11 +73,15 @@ class _GameScreenState extends State<GameDetailScreen> {
                   padding: EdgeInsets.symmetric(horizontal: 32.w),
                   child: Image.asset(AppImages.spendrathonCard, fit: BoxFit.contain),
                 ),
-                SizedBox(height: 40.w),
                 Expanded(
                   child: SingleChildScrollView(
                     child: Column(
                       children: [
+                        // Headroom for the paperclip, which the card paints at a
+                        // negative offset. It has to live inside the scroll view
+                        // or the viewport clips the clip away once the content
+                        // overflows on a short screen.
+                        SizedBox(height: 40.w),
                         // Yellow frosted detail card with paperclip.
                         BlurContainerWrapper(
                           showClip: true,

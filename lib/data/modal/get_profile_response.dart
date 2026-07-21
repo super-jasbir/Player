@@ -47,6 +47,10 @@ class ProfileData {
   dynamic createdAt;
   dynamic updatedAt;
 
+  /// Games available to play, shown as the badge on the home PLAY button.
+  /// Null when the API omits the key — the badge is hidden in that case.
+  int? totalGameCount;
+
   ProfileData({
     required this.id,
     required this.name,
@@ -74,6 +78,7 @@ class ProfileData {
     required this.isBlock,
     required this.createdAt,
     required this.updatedAt,
+    this.totalGameCount,
   });
 
   factory ProfileData.fromJson(Map<String, dynamic> json) => ProfileData(
@@ -103,7 +108,15 @@ class ProfileData {
     isBlock: json["is_block"],
     createdAt: json["created_at"],
     updatedAt: json["updated_at"],
+    totalGameCount: _asInt(json["total_game_count"]),
   );
+
+  static int? _asInt(dynamic value) {
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    if (value is String) return int.tryParse(value);
+    return null;
+  }
 
   Map<String, dynamic> toJson() => {
     "id": id,
@@ -130,5 +143,6 @@ class ProfileData {
     "is_block": isBlock,
     "created_at": createdAt,
     "updated_at": updatedAt,
+    "total_game_count": totalGameCount,
   };
 }

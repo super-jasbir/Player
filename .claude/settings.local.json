@@ -106,7 +106,26 @@
       "Bash(/Users/jasbir/Library/Android/sdk/platform-tools/adb -s 127.0.0.1:6555 shell screencap -p /sdcard/e1.png)",
       "Bash(/Users/jasbir/Library/Android/sdk/platform-tools/adb -s 127.0.0.1:6555 pull /sdcard/e1.png /private/tmp/claude-501/-Users-jasbir-Downloads-freelance-projects-player/a4a98ffa-75a0-44cb-b537-2260757b20ad/scratchpad/e1.png)",
       "Bash(/Users/jasbir/Library/Android/sdk/platform-tools/adb -s RZ8R80780NP shell 'run-as com.spendrathon.player cat /data/data/com.spendrathon.player/shared_prefs/FlutterSharedPreferences.xml 2>/dev/null')",
-      "Bash(/Users/jasbir/Library/Android/sdk/platform-tools/adb -s RZ8R80780NP shell 'run-as com.spendrathon.player cat /data/data/com.spendrathon.player/shared_prefs/FlutterSharedPreferences.xml')"
+      "Bash(/Users/jasbir/Library/Android/sdk/platform-tools/adb -s RZ8R80780NP shell 'run-as com.spendrathon.player cat /data/data/com.spendrathon.player/shared_prefs/FlutterSharedPreferences.xml')",
+      "Bash(xcode-select -p)",
+      "Read(//Applications/**)",
+      "Bash(xcodebuild -version)",
+      "Bash(sw_vers)",
+      "Bash(open \"macappstore://apps.apple.com/app/xcode/id497799835\")",
+      "Bash(ls -ld /Applications/Xcode.app 2>/dev/null && du -sh /Applications/Xcode.app 2>/dev/null; ls /private/var/folders/*/*/C/com.apple.appstore/*/ 2>/dev/null | head -5; echo \"---\"; ps aux | grep -i \"[a]ppstoreagent\\\\|[s]toredownloadd\" | wc -l)",
+      "Bash(exit 0)",
+      "Bash(/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -version)",
+      "Bash(pod --version)",
+      "Bash(echo \"already installed: $\\(pod --version 2>&1\\)\")",
+      "Bash(brew install *)",
+      "Bash(xcodebuild -checkFirstLaunchStatus)",
+      "Bash(xcrun simctl *)",
+      "Bash(xcodebuild -downloadPlatform iOS)",
+      "Bash(flutter doctor *)",
+      "Bash(pod install *)",
+      "Bash(grep -n \"IPHONEOS_DEPLOYMENT_TARGET\" Runner.xcodeproj/project.pbxproj | sort -u; echo \"--- google_maps podspec req ---\"; grep -rn \"platform\\\\|deployment\" .symlinks/plugins/google_maps_flutter_ios/ios/*.podspec 2>/dev/null)",
+      "Bash(pod update *)",
+      "Bash(open -a Simulator)"
     ]
   }
 }

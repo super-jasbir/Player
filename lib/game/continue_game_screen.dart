@@ -5,10 +5,12 @@ import 'package:intl/intl.dart';
 import 'package:player/app_controller.dart';
 import 'package:player/common_widgets.dart';
 import 'package:player/core/theme/app_images.dart';
+import 'package:player/data/modal/game/game_list_response.dart';
 import 'package:player/data/modal/leaderboard/LeaderboardResponse.dart';
+import 'package:player/game/game_controller.dart';
+import 'package:player/game/merchant/GameMerchantList.dart';
 
 import '../3dView/home_top_bar.dart';
-import '../leaderboard/leaderboardDetail.dart';
 import '../ui/game_option/game_option_screen.dart';
 
 /// Accent blue used for titles / links (matches the game list screen).
@@ -59,8 +61,29 @@ class ContinueGame extends StatelessWidget {
     }
   }
 
-  void _openDetail(LeaderboardList g) {
-    Get.to(LeaderboardDetail(ID: g.gameUniqueId ?? "", title: g.gameName));
+  /// Resumes a participated game straight in the merchant list. The merchant
+  /// list only needs the game id on [GameController.gameData] — it fetches the
+  /// full detail itself in initState.
+  void _openGame(LeaderboardList g) {
+    final appC = Get.find<AppController>();
+    appC.gameName = g.gameName ?? "";
+    appC.gameUniqueId = g.gameUniqueId ?? "";
+
+    final gameC = Get.put(GameController());
+    gameC.gameData = GameData(
+      gameId: g.id ?? 0,
+      gameUniqueId: g.gameUniqueId ?? "",
+      gameName: g.gameName ?? "",
+      gamePoster: g.gImage ?? "",
+      gameZone: appC.gameZone,
+      totalOutlet: 0,
+      gameEndDate: g.gameEndDate,
+      start_timer_count: g.startTimerCount,
+      end_timer_count: g.endTimerCount,
+      status: g.status,
+    );
+
+    Get.to(GameMerchantList());
   }
 
   @override
@@ -189,7 +212,10 @@ class ContinueGame extends StatelessWidget {
     final Color nameColor =
         faded ? const Color(0xFF9AA0A6) : _accentBlue;
 
-    return Container(
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => _openGame(g),
+      child: Container(
       margin: EdgeInsets.only(bottom: 12.h),
       padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
       decoration: BoxDecoration(
@@ -267,6 +293,7 @@ class ContinueGame extends StatelessWidget {
           _statusButton(g, status),
         ],
       ),
+      ),
     );
   }
 
@@ -289,7 +316,7 @@ class ContinueGame extends StatelessWidget {
         return _pill(
           "CONTINUE",
           gradient: const [Color(0xFFB3E5FC), Color(0xFF29B6F6)],
-          onTap: () => _openDetail(g),
+          onTap: () => _openGame(g),
         );
     }
   }

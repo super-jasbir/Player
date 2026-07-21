@@ -137,7 +137,15 @@ class _HomeScreenPlayerState extends State<HomeScreenPlayer> {
               right: 0,
               bottom: size.height * 0.05,
               child: Center(
-                child: _PlayButton(badgeCount: 3, onTap: _startGame),
+                child: Obx(() {
+                  // Rebuild once the profile lands; the badge is hidden until
+                  // the API returns a count above zero.
+                  final _ = appC.hasData.value;
+                  return _PlayButton(
+                    badgeCount: appC.profileData?.totalGameCount ?? 0,
+                    onTap: _startGame,
+                  );
+                }),
               ),
             ),
           ],

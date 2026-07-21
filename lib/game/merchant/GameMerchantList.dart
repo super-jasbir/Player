@@ -593,10 +593,7 @@ class _GameScreenState extends State<GameMerchantList> {
                       ),
                       SizedBox(height: 18.h),
                       InkWell(
-                        onTap: () {
-                          Navigator.of(ctx).pop();
-                          Get.offAll(HomeScreenPlayer());
-                        },
+                        onTap: () => _closeToMerchantList(ctx),
                         child: Text(
                           "CLOSE",
                           style: TextStyle(
@@ -705,17 +702,11 @@ class _GameScreenState extends State<GameMerchantList> {
                       SizedBox(height: 24.h),
                       AppButton(
                         title: "DONE",
-                        onPressed: () {
-                          Navigator.of(ctx).pop();
-                          Get.offAll(HomeScreenPlayer());
-                        },
+                        onPressed: () => _closeToMerchantList(ctx),
                       ),
                       SizedBox(height: 12.h),
                       InkWell(
-                        onTap: () {
-                          Navigator.of(ctx).pop();
-                          Get.offAll(HomeScreenPlayer());
-                        },
+                        onTap: () => _closeToMerchantList(ctx),
                         child: Text(
                           "CLOSE",
                           style: TextStyle(
@@ -736,6 +727,16 @@ class _GameScreenState extends State<GameMerchantList> {
         );
       },
     );
+  }
+
+  /// Ends the shop-completion flow: dismisses the dialog and leaves the player
+  /// on the merchant list, with the shop they just finished now marked
+  /// complete. The selfie is dropped so it cannot leak into the next shop.
+  void _closeToMerchantList(BuildContext dialogContext) {
+    Navigator.of(dialogContext).pop();
+    _capturedImagePath = "";
+    merchantC.uploadedProfileImage.value = "";
+    _refreshGameDetail();
   }
 
   Widget _socialButton({
