@@ -1,0 +1,17 @@
+<svg preserveAspectRatio="none" width="100%" height="100%" overflow="visible" style="display: block;" viewBox="0 0 9 11.25" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="OBJECTS" clip-path="url(#clip0_0_27)">
+<path id="Vector" d="M7.49959 5.625L9 2.81184H5.99919L4.5 0L2.99959 2.81184H0L1.50041 5.625L0 8.43684H2.99959L4.5 11.25L5.99919 8.43684H9L7.49959 5.625Z" fill="#FFC33D"/>
+<path id="Vector_2" d="M4.5 0L2.99959 2.81184H0L4.5 5.625V0Z" fill="#FFE384"/>
+<path id="Vector_3" d="M9 2.81184H5.99919L4.5 0V5.625L9 2.81184Z" fill="#FFC33D"/>
+<path id="Vector_4" d="M9 8.43684L7.49959 5.625L9 2.81184L4.5 5.625L9 8.43684Z" fill="#F1A327"/>
+<path id="Vector_5" d="M4.5 11.25L5.99919 8.43684H9L4.5 5.625V11.25Z" fill="#EF7429"/>
+<path id="Vector_6" d="M0 8.43684H2.99959L4.5 11.25V5.625L0 8.43684Z" fill="#F1A327"/>
+<path id="Vector_7" d="M0 2.81184L1.50041 5.625L0 8.43684L4.5 5.625L0 2.81184Z" fill="#FFC33D"/>
+<path id="Vector_8" d="M6.75 4.21842H5.24959L4.5 2.81184L3.75041 4.21842H2.25L2.99959 5.625L2.25 7.03158H3.75041L4.5 8.43684L5.24959 7.03158H6.75L5.99919 5.625L6.47576 4.73302L6.75 4.21842Z" fill="#FFD569"/>
+</g>
+<defs>
+<clipPath id="clip0_0_27">
+<rect width="9" height="11.25" fill="white"/>
+</clipPath>
+</defs>
+</svg>
