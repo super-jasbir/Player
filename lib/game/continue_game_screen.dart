@@ -251,7 +251,8 @@ class ContinueGame extends StatelessWidget {
                   ),
                 ),
                 SizedBox(height: 4.h),
-                Row(
+                // timer text
+           /*     Row(
                   children: [
                     Image.asset(
                       "assets/images/home/ic_clock.png",
@@ -285,7 +286,7 @@ class ContinueGame extends StatelessWidget {
                       ),
                     ],
                   ],
-                ),
+                ),*/
               ],
             ),
           ),

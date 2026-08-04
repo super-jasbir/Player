@@ -5,9 +5,9 @@ import 'package:player/utils/app_components.dart';
 
 import 'tutorial_detail_screen.dart';
 
-/// A single tutorial entry. Thumbnails are existing in-app assets; the video
-/// URLs are placeholders — swap them for the real tutorial videos (or an API
-/// response) when available.
+/// A single tutorial entry. Both [thumbnail] and [videoUrl] are network URLs
+/// (with a local asset fallback for the thumbnail) — swap them for the real
+/// tutorial content (or an API response) when available.
 class TutorialItem {
   final String title;
   final String thumbnail;
@@ -31,15 +31,15 @@ class TutorialsScreen extends StatelessWidget {
   final List<TutorialItem> tutorials = const [
     TutorialItem(
       title: "Getting Started",
-      thumbnail: "assets/images/m2/game_bg.png",
-      videoUrl:
-          "https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4",
+      thumbnail:
+          "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=800&q=80",
+      videoUrl: "https://assets.mixkit.co/videos/47140/47140-720.mp4",
     ),
     TutorialItem(
       title: "How to Play",
-      thumbnail: "assets/images/m2/game_bg.png",
-      videoUrl:
-          "https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4",
+      thumbnail:
+          "https://images.unsplash.com/photo-1552820728-8b83bb6b773f?w=800&q=80",
+      videoUrl: "https://assets.mixkit.co/videos/40460/40460-720.mp4",
     ),
   ];
 
@@ -116,7 +116,23 @@ class TutorialsScreen extends StatelessWidget {
             child: Stack(
               fit: StackFit.expand,
               children: [
-                Image.asset(item.thumbnail, fit: BoxFit.cover),
+                Image.network(
+                  item.thumbnail,
+                  fit: BoxFit.cover,
+                  loadingBuilder: (context, child, progress) {
+                    if (progress == null) return child;
+                    return const Center(
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    );
+                  },
+                  errorBuilder: (_, __, ___) => Image.asset(
+                    "assets/images/m2/ic_video_bg.png",
+                    fit: BoxFit.cover,
+                  ),
+                ),
                 Container(color: Colors.black.withOpacity(0.08)),
                 Center(
                   child: Container(

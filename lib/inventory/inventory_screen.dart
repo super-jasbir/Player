@@ -69,7 +69,7 @@ class InventoryScreen extends StatelessWidget {
                 crossAxisSpacing: 16,
                 childAspectRatio: 0.72,
               ),
-              itemBuilder: (context, index) => _itemCard(items[index]),
+              itemBuilder: (context, index) => _itemCard(context, items[index]),
             ),
           ),
         ],
@@ -222,7 +222,7 @@ class InventoryScreen extends StatelessWidget {
   // ---------------------------------------------------------------------------
   // Item card
   // ---------------------------------------------------------------------------
-  Widget _itemCard(InventoryItem item) {
+  Widget _itemCard(BuildContext context, InventoryItem item) {
     return Container(
       padding: const EdgeInsets.fromLTRB(12, 16, 12, 12),
       decoration: BoxDecoration(
@@ -260,15 +260,15 @@ class InventoryScreen extends StatelessWidget {
               ),
             ],
           ),
-          _useButton(),
+          _useButton(context, item),
         ],
       ),
     );
   }
 
-  Widget _useButton() {
+  Widget _useButton(BuildContext context, InventoryItem item) {
     return InkWell(
-      onTap: () {},
+      onTap: () => _showUseDialog(context, item),
       child: Container(
         height: 40,
         width: double.infinity,
@@ -289,6 +289,156 @@ class InventoryScreen extends StatelessWidget {
           color: Colors.white,
           size: 16,
           fontWeight: FontWeight.w800,
+        ),
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // "USE" dialog flow: confirm -> activated (see Figma screenshots).
+  // ---------------------------------------------------------------------------
+  void _showUseDialog(BuildContext context, InventoryItem item) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (dialogCtx) => _powerCardDialog(
+        title: item.name.toUpperCase(),
+        subtitle: const Text(
+          "Confirm to use?",
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: Color(0xFF8A8A8A),
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        primaryLabel: "USE",
+        onPrimary: () {
+          Navigator.of(dialogCtx).pop();
+          _showActivatedDialog(context, item);
+        },
+        showClose: true,
+        onClose: () => Navigator.of(dialogCtx).pop(),
+      ),
+    );
+  }
+
+  void _showActivatedDialog(BuildContext context, InventoryItem item) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (dialogCtx) => _powerCardDialog(
+        title: "ACTIVATED",
+        subtitle: Text.rich(
+          TextSpan(
+            style: const TextStyle(
+              color: Color(0xFF5A5A5A),
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
+            ),
+            children: [
+              const TextSpan(text: "Power card - "),
+              TextSpan(
+                text: item.name,
+                style: const TextStyle(fontWeight: FontWeight.w800),
+              ),
+              const TextSpan(text: "\nhave been activate."),
+            ],
+          ),
+          textAlign: TextAlign.center,
+        ),
+        primaryLabel: "DONE",
+        onPrimary: () => Navigator.of(dialogCtx).pop(),
+        showClose: false,
+      ),
+    );
+  }
+
+  Widget _powerCardDialog({
+    required String title,
+    required Widget subtitle,
+    required String primaryLabel,
+    required VoidCallback onPrimary,
+    required bool showClose,
+    VoidCallback? onClose,
+  }) {
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 28),
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(22, 26, 22, 22),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.92),
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.25),
+              blurRadius: 18,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AppComponents.text(
+              title,
+              color: _titleBlue,
+              size: 26,
+              fontWeight: FontWeight.w900,
+            ),
+            const SizedBox(height: 8),
+            subtitle,
+            const SizedBox(height: 22),
+            SizedBox(
+              width: 120,
+              height: 114,
+              child: FittedBox(
+                fit: BoxFit.contain,
+                child: _timeControllerIcon(),
+              ),
+            ),
+            const SizedBox(height: 26),
+            InkWell(
+              onTap: onPrimary,
+              borderRadius: BorderRadius.circular(30),
+              child: Container(
+                height: 54,
+                width: double.infinity,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  gradient: _useGradient,
+                  borderRadius: BorderRadius.circular(30),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF1E9AD6).withOpacity(0.4),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: AppComponents.text(
+                  primaryLabel,
+                  color: Colors.white,
+                  size: 18,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+            if (showClose) ...[
+              const SizedBox(height: 12),
+              InkWell(
+                onTap: onClose,
+                child: AppComponents.text(
+                  "CLOSE",
+                  color: const Color(0xFF8A8A8A),
+                  size: 14,
+                  fontWeight: FontWeight.w700,
+                  enableUnderLine: true,
+                ),
+              ),
+            ],
+          ],
         ),
       ),
     );

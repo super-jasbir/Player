@@ -9,6 +9,7 @@ import 'package:player/game/game_controller.dart';
 import '../3dView/home_top_bar.dart';
 import '../core/theme/app_images.dart';
 import '../routes/app_routes.dart';
+import '../utils/app_color.dart';
 
 class GameListScreen extends StatefulWidget {
   const GameListScreen({super.key});
@@ -173,7 +174,7 @@ class _GameScreenState extends State<GameListScreen> {
       onTap: () => _openItem(data),
       child: Container(
         margin: EdgeInsets.only(bottom: 16.h),
-        height: 178.h,
+        height: 200.h,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20.r),
           boxShadow: const [
@@ -233,37 +234,6 @@ class _GameScreenState extends State<GameListScreen> {
                       ),
                     ),
                     SizedBox(height: 8.h),
-                    Container(
-                      padding: EdgeInsets.symmetric(
-                          horizontal: 16.w, vertical: 7.h),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            const Color(0xFFE1F5FE).withOpacity(0.8),
-                            const Color(0xFFB3E5FC).withOpacity(0.8),
-                          ],
-                        ),
-                        borderRadius: BorderRadius.circular(20.r),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFF4FC3F7).withOpacity(0.1882),
-                            offset: const Offset(0, 2),
-                            blurRadius: 8,
-                            spreadRadius: 0,
-                          ),
-                        ],
-                      ),
-                      child: Text(
-                        "Game Complication Track",
-                        style: TextStyle(
-                          fontFamily: 'Inter',
-                          fontSize: 12.sp,
-                          fontWeight: FontWeight.w700,
-                          color: const Color(0xFF3AA0E3),
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 8.h),
                     InkWell(
                       onTap: () => _openItem(data),
                       child: Text(
@@ -278,6 +248,45 @@ class _GameScreenState extends State<GameListScreen> {
                         ),
                       ),
                     ),
+                    // Game status + completion time (ported from main branch).
+                    // Tapping a COMPLETED game opens the restart/reset dialog.
+                    if ((data.status ?? "").toString().isNotEmpty) ...[
+                      SizedBox(height: 8.h),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Text(
+                            (data.status ?? "").toString(),
+                            style: TextStyle(
+                              fontFamily: 'Inter',
+                              fontSize: 12.sp,
+                              fontWeight: FontWeight.w700,
+                              color: data.status == "COMPLETED"
+                                  ? AppColors.red
+                                  : data.status == "GAME NOT STARTED YET"
+                                      ? AppColors.darkGreen
+                                      : AppColors.appYellowColor,
+                            ),
+                          ),
+                          if (data.status == "COMPLETED" &&
+                              data.CompletedTime != null &&
+                              (data.CompletedTime as String)
+                                  .isNotEmpty) ...[
+                            SizedBox(width: 8.w),
+                            Text(
+                              (data.CompletedTime ?? "").toString(),
+                              style: TextStyle(
+                                fontFamily: 'Inter',
+                                fontSize: 11.sp,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ],
                   ],
                 ),
               ),
