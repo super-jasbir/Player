@@ -1,5 +1,4 @@
-import 'dart:ui';
-
+import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:player/app_constant/chinese_constants.dart';
@@ -57,8 +56,45 @@ class AppController extends GetxController{
         callback.call();
       }else{
         hasData.value  = false;
+        // Reaching the profile failed (e.g. no internet / DNS failure). Show a
+        // dismissible message with a Retry action instead of failing silently.
+        if (value.error != null) {
+          showConnectionError(value.error!, onRetry: () => getProfile(callback));
+        }
       }
     });
+  }
+
+  /// Shows a snackbar for a failed request with a RETRY action. Used for
+  /// connectivity failures (see [kConnectionErrorMessage]) so the user can
+  /// recover once the network is back, rather than being stuck on a blank
+  /// screen. Only one snackbar is shown at a time.
+  void showConnectionError(String message, {VoidCallback? onRetry}) {
+    if (Get.isSnackbarOpen) return;
+    Get.snackbar(
+      "Connection problem",
+      message,
+      snackPosition: SnackPosition.BOTTOM,
+      margin: const EdgeInsets.all(12),
+      backgroundColor: const Color(0xFF323232),
+      colorText: const Color(0xFFFFFFFF),
+      duration: const Duration(seconds: 5),
+      mainButton: onRetry == null
+          ? null
+          : TextButton(
+              onPressed: () {
+                if (Get.isSnackbarOpen) Get.back();
+                onRetry();
+              },
+              child: const Text(
+                "RETRY",
+                style: TextStyle(
+                  color: Color(0xFF4FC3F7),
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+    );
   }
 
   /// Fetches the games the player has already participated in. Uses the id

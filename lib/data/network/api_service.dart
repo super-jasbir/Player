@@ -41,6 +41,28 @@ Future<void> _handleUnauthenticated(String path) async {
   _redirectingToLogin = false;
 }
 
+/// User-facing message shown when a request never reaches the server (no
+/// internet, DNS lookup failure, or a timeout) — i.e. a [DioException] with no
+/// response. Distinct from "something went wrong" so the UI can offer a retry.
+const String kConnectionErrorMessage =
+    "Can't reach the server. Please check your internet connection and try again.";
+
+/// True when [e] is a connectivity failure rather than a real server response
+/// (bad status). Covers DNS/host-lookup failures, dropped connections and
+/// timeouts.
+bool isConnectionError(DioException e) {
+  return e.type == DioExceptionType.connectionError ||
+      e.type == DioExceptionType.connectionTimeout ||
+      e.type == DioExceptionType.receiveTimeout ||
+      e.type == DioExceptionType.sendTimeout ||
+      e.error is SocketException;
+}
+
+/// Message to surface for a [DioException] that carried no response: a friendly
+/// connectivity message for connection errors, else the generic fallback.
+String _noResponseMessage(DioException error) =>
+    isConnectionError(error) ? kConnectionErrorMessage : "something went wrong";
+
 class ApiService {
   Dio? _dio;
 
@@ -121,7 +143,7 @@ class ApiService {
 
         }
       }else{
-        return NetworkWrapper(error: "something went wrong");
+        return NetworkWrapper(error: _noResponseMessage(error));
       }
     }
 
@@ -204,7 +226,7 @@ class ApiService {
 
         }
       }else{
-        return NetworkWrapper(error: "something went wrong");
+        return NetworkWrapper(error: _noResponseMessage(error));
       }
 
     }
@@ -288,7 +310,7 @@ class ApiService {
 
         }
       }else{
-        return NetworkWrapper(error: "something went wrong");
+        return NetworkWrapper(error: _noResponseMessage(error));
       }
 
     }
