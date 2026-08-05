@@ -6,6 +6,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 
 import '../../app_controller.dart';
+import '../../core/services/tap_sound.dart';
 import '../../core/theme/app_fonts.dart';
 import '../../core/theme/app_images.dart';
 import '../../data/local/shared_prefs.dart';
@@ -232,7 +233,9 @@ class ShopBackButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    // Back button: no global click sound (its own sound comes later).
+    return NoTapSound(
+      child: GestureDetector(
       onTap: onTap ?? () => Get.back(),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -251,6 +254,7 @@ class ShopBackButton extends StatelessWidget {
           ),
         ],
       ),
+    ),
     );
   }
 }

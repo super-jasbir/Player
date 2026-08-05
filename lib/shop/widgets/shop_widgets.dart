@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 
+import '../../core/services/tap_sound.dart';
 import '../../core/theme/app_fonts.dart';
 import '../../core/theme/app_images.dart';
 import '../models/shop_product.dart';
@@ -50,7 +51,9 @@ class ShopPanelHeader extends StatelessWidget {
       children: [
         Align(
           alignment: Alignment.centerLeft,
-          child: GestureDetector(
+          // Back button: no global click sound (its own sound comes later).
+          child: NoTapSound(
+            child: GestureDetector(
             onTap: onBack ?? () => Get.back(),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -68,6 +71,7 @@ class ShopPanelHeader extends StatelessWidget {
                 ),
               ],
             ),
+          ),
           ),
         ),
         Text(

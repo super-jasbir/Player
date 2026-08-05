@@ -9,6 +9,8 @@ import 'package:player/utils/app_utils.dart';
 import '../utils/app_color.dart';
 import '../utils/app_components.dart';
 import 'leaderboardDetail.dart';
+import 'package:player/core/services/sound_service.dart';
+import 'package:player/core/services/tap_sound.dart';
 
 class Leaderboard extends StatefulWidget {
   String? title = "";
@@ -26,6 +28,8 @@ class _GameScreenState extends State<Leaderboard> {
   @override
   void initState() {
     super.initState();
+    // Play the leaderboard sound when the screen opens.
+    SoundService.instance.playLeaderboard();
     controller.leaderboardList(() {
       if (mounted) setState(() => _loading = false);
     });
@@ -63,7 +67,8 @@ class _GameScreenState extends State<Leaderboard> {
                   right: 18),
               child: Row(
                 children: [
-                  InkWell(
+                  NoTapSound(
+                    child: InkWell(
                       onTap: () {
                         Get.back();
                       },
@@ -71,6 +76,7 @@ class _GameScreenState extends State<Leaderboard> {
                         Icons.arrow_back_ios_new,
                         color: Colors.white,
                       )),
+                  ),
                   Spacer(),
                   AppComponents.text(widget.title?.toUpperCase() ?? "",
                       fontWeight: FontWeight.w700,

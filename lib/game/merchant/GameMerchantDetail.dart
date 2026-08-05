@@ -9,6 +9,7 @@ import 'package:player/utils/app_utils.dart';
 import '../../utils/app_components.dart';
 import '../game_list_screen.dart';
 import 'GameMerchantList.dart';
+import 'package:player/core/services/tap_sound.dart';
 
 class GameMerchantDetail extends StatefulWidget {
   const GameMerchantDetail({super.key});
@@ -65,7 +66,8 @@ class _GameScreenState extends State<GameMerchantDetail> {
                         right: 18),
                     child: Row(
                       children: [
-                        InkWell(
+                        NoTapSound(
+                          child: InkWell(
                           child: Container(
                             child: Icon(
                               Icons.arrow_back_ios_new,
@@ -78,6 +80,7 @@ class _GameScreenState extends State<GameMerchantDetail> {
                           onTap: (){
                             Get.back();
                           },
+                        ),
                         ),
                       ],
                     ),

@@ -9,6 +9,7 @@ import '../shop/widgets/shop_chrome.dart';
 import '../shop/widgets/shop_glass_card.dart';
 import 'mysterybox_controller.dart';
 import 'widgets/mysterybox_dialogs.dart';
+import 'package:player/core/services/tap_sound.dart';
 
 /// A single mystery box: artwork, name and description, then the payment
 /// flow (payment sheet -> success -> reward reveal).
@@ -122,7 +123,8 @@ class _MysteryBoxDetailScreenState extends State<MysteryBoxDetailScreen> {
           Positioned(
             left: 13.w,
             top: 21.h,
-            child: GestureDetector(
+            child: NoTapSound(
+              child: GestureDetector(
               onTap: () => Get.back(),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -140,6 +142,7 @@ class _MysteryBoxDetailScreenState extends State<MysteryBoxDetailScreen> {
                   ),
                 ],
               ),
+            ),
             ),
           ),
           Positioned(

@@ -99,6 +99,12 @@ flutter:
     - assets/animation.json
     - assets/test.json
     - assets/click.mp3
+    - assets/button_click_sound.mp4
+    - assets/button_back_sound.mp4
+    - assets/sound_game_complete.mp4
+    - assets/sound_leaderboard.mp4
+    - assets/sound_timer.mp4
+    - assets/splash_sound.mpeg
     - assets/City.obj
     - assets/City.glb
 

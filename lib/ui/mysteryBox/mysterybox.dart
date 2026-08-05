@@ -4,6 +4,7 @@ import 'package:player/merchant/merchant_controller.dart';
 import '../../utils/app_components.dart';
 import '../redeemable/redeemable.dart';
 import 'mysteryboxList.dart';
+import 'package:player/core/services/tap_sound.dart';
 
 class MySteryBox extends StatefulWidget {
   String? title = "";
@@ -50,7 +51,8 @@ class _GameScreenState extends State<MySteryBox> {
                         right: 18),
                     child: Row(
                       children: [
-                        InkWell(
+                        NoTapSound(
+                          child: InkWell(
                             onTap: () {
                               Get.back();
                             },
@@ -58,6 +60,7 @@ class _GameScreenState extends State<MySteryBox> {
                               Icons.arrow_back_ios_new,
                               color: Colors.white,
                             )),
+                        ),
                         Spacer(),
                         AppComponents.text("Mystery Box",
                             fontWeight: FontWeight.bold,

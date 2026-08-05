@@ -12,6 +12,7 @@ import '../../3dView/home_screen_player.dart';
 import '../../3dView/home_top_bar.dart';
 import '../../data/network/api_endpoints.dart';
 import '../../map/game_tracker.dart';
+import 'package:player/core/services/tap_sound.dart';
 
 /// Accent blue used for titles / values (matches the game detail screen).
 const Color _accentBlue = Color(0xFF0288D1);
@@ -104,9 +105,11 @@ class _GameScreenState extends State<SelectHalalNonHalal> {
                               // Back + Home row.
                               Row(
                                 children: [
-                                  _CircleIconButton(
-                                    icon: Icons.arrow_back,
-                                    onTap: () => Get.back(),
+                                  NoTapSound(
+                                    child: _CircleIconButton(
+                                      icon: Icons.arrow_back,
+                                      onTap: () => Get.back(),
+                                    ),
                                   ),
                                   const Spacer(),
                                   _CircleIconButton(

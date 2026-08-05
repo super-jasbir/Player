@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:player/core/services/sound_service.dart';
+import 'package:player/core/services/tap_sound.dart';
 import 'package:player/data/local/shared_prefs.dart';
 import 'package:player/generated/l10n/app_localizations.dart';
 import 'package:player/routes/app_pages.dart';
@@ -54,7 +55,8 @@ class MyApp extends StatelessWidget {
         return MediaQuery(
           data:
           MediaQuery.of(context).copyWith(textScaler: TextScaler.noScaling),
-          child: child!,
+          // Plays the button-click sound on every real button tap, app-wide.
+          child: GlobalTapSound(child: child!),
         );
       },
       theme: ThemeData.light(),

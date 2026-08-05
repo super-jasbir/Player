@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:player/common_widgets.dart';
+import 'package:player/core/services/tap_sound.dart';
 import 'package:player/core/theme/app_images.dart';
 import 'package:player/game/game_controller.dart';
 import 'package:player/game/selecthalalnonhalal/select_halal_non_halal.dart';
@@ -265,7 +266,9 @@ class _CircleBackButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
+    // Back button: no global click sound (its own sound comes later).
+    return NoTapSound(
+      child: InkWell(
       onTap: onTap,
       customBorder: const CircleBorder(),
       child: Container(
@@ -278,6 +281,7 @@ class _CircleBackButton extends StatelessWidget {
         ),
         child: const Icon(Icons.arrow_back, size: 20, color: Color(0xFF374151)),
       ),
+    ),
     );
   }
 }

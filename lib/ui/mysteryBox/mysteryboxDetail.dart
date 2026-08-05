@@ -6,6 +6,7 @@ import '../../utils/app_color.dart';
 import '../../utils/app_components.dart';
 import '../../utils/app_fonts.dart';
 import '../../utils/app_utils.dart';
+import 'package:player/core/services/tap_sound.dart';
 
 class MySteryBoxDetail extends StatefulWidget {
   String? title = "";
@@ -62,7 +63,8 @@ class _GameScreenState extends State<MySteryBoxDetail> {
                         right: 18),
                     child: Row(
                       children: [
-                        InkWell(
+                        NoTapSound(
+                          child: InkWell(
                             onTap: () {
                               Get.back();
                             },
@@ -70,6 +72,7 @@ class _GameScreenState extends State<MySteryBoxDetail> {
                               Icons.arrow_back_ios_new,
                               color: Colors.white,
                             )),
+                        ),
                         Spacer(),
                         AppComponents.text("Mystery Box Detail",
                             fontWeight: FontWeight.bold,

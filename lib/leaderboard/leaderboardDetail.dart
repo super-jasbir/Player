@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:player/merchant/merchant_controller.dart';
 import '../utils/app_components.dart';
+import 'package:player/core/services/sound_service.dart';
+import 'package:player/core/services/tap_sound.dart';
 
 class LeaderboardDetail extends StatefulWidget {
   String? ID = "";
@@ -42,6 +44,8 @@ class _GameScreenState extends State<LeaderboardDetail> {
   @override
   void initState() {
     super.initState();
+    // Play the leaderboard sound when the screen opens.
+    SoundService.instance.playLeaderboard();
     // Defer until after the first frame — the API calls trigger getProfile()
     // which updates observables, and doing that during build throws
     // "setState() called during build".
@@ -149,7 +153,8 @@ class _GameScreenState extends State<LeaderboardDetail> {
                     children: [
                       Align(
                         alignment: Alignment.centerLeft,
-                        child: InkWell(
+                        child: NoTapSound(
+                          child: InkWell(
                           onTap: () => Get.back(),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
@@ -166,6 +171,7 @@ class _GameScreenState extends State<LeaderboardDetail> {
                               ),
                             ],
                           ),
+                        ),
                         ),
                       ),
                       AppComponents.text(

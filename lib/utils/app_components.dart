@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:player/core/services/sound_service.dart';
 import 'package:player/utils/app_utils.dart';
 
 import 'app_color.dart';
@@ -109,10 +108,8 @@ class AppComponents {
         child: InkWell(
           borderRadius: BorderRadius.circular(12), // Match the border radius
           splashColor: Colors.white.withOpacity(0.3), // Customize ripple color
-          onTap: () {
-            SoundService.instance.playClick();
-            onTap?.call();
-          },
+          // The click sound is played globally by GlobalTapSound.
+          onTap: () => onTap?.call(),
           child: Container(
 
             height: height,

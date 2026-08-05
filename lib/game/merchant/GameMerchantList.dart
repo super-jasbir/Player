@@ -27,6 +27,8 @@ import '../../routes/app_routes.dart';
 import '../../utils/app_color.dart';
 import '../../utils/app_components.dart';
 import '../game_controller.dart';
+import 'package:player/core/services/tap_sound.dart';
+import 'package:player/core/services/sound_service.dart';
 
 /// Accent blue used for titles / links (matches the login screen).
 const Color _accentBlue = Color(0xFF0288D1);
@@ -88,6 +90,8 @@ class _GameScreenState extends State<GameMerchantList> {
   @override
   void dispose() {
     _timer?.cancel();
+    // Stop the looping timer sound when leaving the screen.
+    SoundService.instance.stopTimer();
     _cancelQrSession();
     super.dispose();
   }
@@ -98,6 +102,8 @@ class _GameScreenState extends State<GameMerchantList> {
     _timer?.cancel();
     if (gi.end_timer_count == null && gi.start_timer_count != null) {
       oldTime = DateTime.parse(gi.start_timer_count ?? "00:00:00");
+      // Timer is running — start the looping timer sound.
+      SoundService.instance.startTimerLoop();
       _timer = Timer.periodic(const Duration(seconds: 1), (_) {
         if (!mounted) return;
         setState(() {
@@ -109,6 +115,10 @@ class _GameScreenState extends State<GameMerchantList> {
       oldTime = DateTime.parse(gi.start_timer_count ?? "00:00:00");
       newTime = DateTime.parse(gi.end_timer_count ?? "00:00:00");
       diff = newTime.difference(oldTime);
+      // Timer already ended — make sure no timer sound is playing.
+      SoundService.instance.stopTimer();
+    } else {
+      SoundService.instance.stopTimer();
     }
   }
 
@@ -233,7 +243,8 @@ class _GameScreenState extends State<GameMerchantList> {
                           );
                         }),
                         SizedBox(height: 44.h),
-                        InkWell(
+                        NoTapSound(
+                          child: InkWell(
                           onTap: () {
                             _cancelQrSession();
                             Navigator.of(ctx).pop();
@@ -255,6 +266,7 @@ class _GameScreenState extends State<GameMerchantList> {
                               ),
                             ],
                           ),
+                        ),
                         ),
                       ],
                     ),
@@ -1124,7 +1136,8 @@ class _GameScreenStateOld extends State<GameMerchantList> {
                   right: 18),
               child: Row(
                 children: [
-                  InkWell(
+                  NoTapSound(
+                    child: InkWell(
                       onTap: () {
                         Get.back();
                       },
@@ -1132,6 +1145,7 @@ class _GameScreenStateOld extends State<GameMerchantList> {
                         Icons.arrow_back_ios_new,
                         color: Colors.white,
                       )),
+                  ),
                   Spacer(),
                   AppComponents.text("Merchant List",
                       fontWeight: FontWeight.w700,

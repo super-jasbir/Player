@@ -23,6 +23,7 @@ import '../data/network/api_endpoints.dart';
 import '../routes/app_routes.dart';
 import '../data/network/api_service.dart';
 import '../utils/app_color.dart';
+import 'package:player/core/services/sound_service.dart';
 
 class MerchantController extends BaseController {
   var selected = "halal".obs;
@@ -349,6 +350,7 @@ class MerchantController extends BaseController {
 
       apiService.postRequest(ApiEndPoint.gameCompletion,req,isBearer: true).then((value) {
         if(value.data !=null){
+          SoundService.instance.playGameComplete();
           callback.call();
         }else{
           Fluttertoast.showToast(msg: value.error.toString());

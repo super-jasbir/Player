@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
+import 'core/services/tap_sound.dart';
 import 'core/theme/app_fonts.dart';
 import 'core/theme/app_images.dart';
 import 'core/theme/app_text_styles.dart';
@@ -392,10 +393,13 @@ class OnboardingChoiceView extends StatelessWidget {
                   alignment: Alignment.centerLeft,
                   child: Padding(
                     padding: EdgeInsets.only(left: 12.w, top: 4.h),
-                    child: IconButton(
-                      onPressed: () => Navigator.of(context).maybePop(),
-                      icon: const Icon(Icons.arrow_back_ios_new,
-                          color: Colors.white),
+                    // Back button: no global click sound (own sound later).
+                    child: NoTapSound(
+                      child: IconButton(
+                        onPressed: () => Navigator.of(context).maybePop(),
+                        icon: const Icon(Icons.arrow_back_ios_new,
+                            color: Colors.white),
+                      ),
                     ),
                   ),
                 ),
@@ -578,7 +582,9 @@ class BackToLoginButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
+    // Back button: no global click sound (its own sound comes later).
+    return NoTapSound(
+      child: InkWell(
       onTap: onTap ?? () => Get.back(),
       borderRadius: BorderRadius.circular(8),
       child: Padding(
@@ -600,6 +606,7 @@ class BackToLoginButton extends StatelessWidget {
           ],
         ),
       ),
+    ),
     );
   }
 }

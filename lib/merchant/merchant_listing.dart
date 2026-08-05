@@ -10,6 +10,7 @@ import 'package:player/utils/app_utils.dart';
 
 import '../utils/app_color.dart';
 import '../utils/app_components.dart';
+import 'package:player/core/services/tap_sound.dart';
 
 class MerchantScreen extends StatefulWidget {
   const MerchantScreen({super.key});
@@ -65,7 +66,8 @@ class _GameScreenState extends State<MerchantScreen> {
                   right: 18),
               child: Row(
                 children: [
-                  InkWell(
+                  NoTapSound(
+                    child: InkWell(
                       onTap: () {
                         Get.back();
                       },
@@ -73,6 +75,7 @@ class _GameScreenState extends State<MerchantScreen> {
                         Icons.arrow_back_ios_new,
                         color: Colors.white,
                       )),
+                  ),
                   Spacer(),
                   AppComponents.text("Merchant List",
                       fontWeight: FontWeight.w700,

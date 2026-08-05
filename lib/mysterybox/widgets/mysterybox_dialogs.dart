@@ -8,6 +8,7 @@ import '../../core/theme/app_fonts.dart';
 import '../../core/theme/app_images.dart';
 import '../../shop/widgets/shop_chrome.dart';
 import '../../shop/widgets/shop_glass_card.dart';
+import 'package:player/core/services/tap_sound.dart';
 
 /// Shared shell for the mystery-box modals: a dimming scrim with a frosted
 /// card of the height the design calls for.
@@ -117,7 +118,8 @@ class MysteryBoxPaymentSheet extends StatelessWidget {
             ),
           ),
           SizedBox(height: 14.h),
-          GestureDetector(
+          NoTapSound(
+            child: GestureDetector(
             onTap: () => Get.back(),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -135,6 +137,7 @@ class MysteryBoxPaymentSheet extends StatelessWidget {
                 ),
               ],
             ),
+          ),
           ),
         ],
       ),

@@ -10,6 +10,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../utils/app_components.dart';
 import '../game_controller.dart';
+import 'package:player/core/services/tap_sound.dart';
 
 
 class MerchantQr extends StatefulWidget {
@@ -83,7 +84,8 @@ class _GameScreenState extends State<MerchantQr> {
                       right: 18),
                   child: Row(
                     children: [
-                      InkWell(
+                      NoTapSound(
+                        child: InkWell(
                         child: Container(
                           child: Icon(
                             Icons.arrow_back_ios_new,
@@ -96,6 +98,7 @@ class _GameScreenState extends State<MerchantQr> {
                         onTap: (){
                           Get.back();
                         },
+                      ),
                       ),
                       Spacer(),
                       AppComponents.text("My Qr".toUpperCase(),

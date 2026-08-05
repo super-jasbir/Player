@@ -7,6 +7,7 @@ import 'package:player/ui/redeemable/redeemableDetail.dart';
 import '../../utils/app_color.dart';
 import '../../utils/app_components.dart';
 import '../../utils/app_utils.dart';
+import 'package:player/core/services/tap_sound.dart';
 
 class RedeemableList extends StatefulWidget {
   String? title = "";
@@ -63,7 +64,8 @@ class _GameScreenState extends State<RedeemableList> {
                         right: 18),
                     child: Row(
                       children: [
-                        InkWell(
+                        NoTapSound(
+                          child: InkWell(
                             onTap: () {
                               Get.back();
                             },
@@ -71,6 +73,7 @@ class _GameScreenState extends State<RedeemableList> {
                               Icons.arrow_back_ios_new,
                               color: Colors.white,
                             )),
+                        ),
                         Spacer(),
                         AppComponents.text("Redeemed Gifts",
                             fontWeight: FontWeight.bold,

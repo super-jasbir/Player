@@ -18,6 +18,7 @@ import '../data/local/shared_prefs.dart';
 import '../data/modal/game/PlayerDetailsResponse.dart';
 import '../data/network/api_endpoints.dart';
 import '../utils/app_color.dart';
+import 'package:player/core/services/sound_service.dart';
 
 class GameController extends BaseController{
   var selected = "tourism".obs;
@@ -84,6 +85,7 @@ class GameController extends BaseController{
 
       apiService.postRequest(ApiEndPoint.gameCompletion,req,isBearer: true).then((value) {
         if(value.data !=null){
+          SoundService.instance.playGameComplete();
           Fluttertoast.showToast(msg: "");
           callback.call();
         }else{

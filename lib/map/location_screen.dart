@@ -15,6 +15,7 @@ import '../app_controller.dart';
 import '../utils/app_color.dart';
 import '../utils/app_components.dart';
 import '../utils/app_fonts.dart';
+import 'package:player/core/services/tap_sound.dart';
 
 class Maps extends StatefulWidget {
   const Maps({super.key});
@@ -107,11 +108,13 @@ class _MapState extends State<Maps> {
                           SizedBox(
                             width: 18,
                           ),
-                          InkWell(
+                          NoTapSound(
+                            child: InkWell(
                               onTap: () {
                                 Navigator.of(context).pop();
                               },
                               child: Icon(Icons.arrow_back_ios_new_outlined)),
+                          ),
                           Spacer(),
                           Container(
                             margin: EdgeInsets.only(left: 20),

@@ -4,6 +4,7 @@ import 'package:player/app_controller.dart';
 import 'package:player/game/game_list_screen.dart';
 
 import '../3dView/home_top_bar.dart';
+import 'package:player/core/services/tap_sound.dart';
 
 class SelectGameZone extends StatefulWidget {
   const SelectGameZone({super.key});
@@ -111,7 +112,8 @@ class _Header extends StatelessWidget {
         children: [
           Align(
             alignment: Alignment.centerLeft,
-            child: InkWell(
+            child: NoTapSound(
+              child: InkWell(
               onTap: onBack,
               borderRadius: BorderRadius.circular(8),
               child: const Padding(
@@ -133,6 +135,7 @@ class _Header extends StatelessWidget {
                   ],
                 ),
               ),
+            ),
             ),
           ),
           const Text(

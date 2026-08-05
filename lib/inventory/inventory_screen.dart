@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../utils/app_components.dart';
+import 'package:player/core/services/tap_sound.dart';
 
 /// A single inventory entry. Static for now — swap the [items] list for an API
 /// response when the inventory endpoint is available.
@@ -174,7 +175,8 @@ class InventoryScreen extends StatelessWidget {
           Positioned(
             top: topPad + 150,
             left: 16,
-            child: InkWell(
+            child: NoTapSound(
+              child: InkWell(
               onTap: () => Get.back(),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -189,6 +191,7 @@ class InventoryScreen extends StatelessWidget {
                   ),
                 ],
               ),
+            ),
             ),
           ),
         ],

@@ -4,6 +4,7 @@ import 'package:player/3dView/home_top_bar.dart';
 import 'package:player/utils/app_components.dart';
 
 import 'tutorial_detail_screen.dart';
+import 'package:player/core/services/tap_sound.dart';
 
 /// A single tutorial entry. Both [thumbnail] and [videoUrl] are network URLs
 /// (with a local asset fallback for the thumbnail) — swap them for the real
@@ -162,7 +163,8 @@ class TutorialsScreen extends StatelessWidget {
 
   Widget _backButton() {
     return Center(
-      child: InkWell(
+      child: NoTapSound(
+        child: InkWell(
         onTap: () => Get.back(),
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
@@ -180,6 +182,7 @@ class TutorialsScreen extends StatelessWidget {
             ],
           ),
         ),
+      ),
       ),
     );
   }

@@ -5,6 +5,7 @@ import 'package:player/utils/app_components.dart';
 import 'package:video_player/video_player.dart';
 
 import 'tutorials_screen.dart';
+import 'package:player/core/services/tap_sound.dart';
 
 /// Plays a single tutorial video full-screen with standard playback controls
 /// (play / pause / seek / fullscreen) via chewie.
@@ -86,9 +87,11 @@ class _TutorialDetailScreenState extends State<TutorialDetailScreen> {
       padding: const EdgeInsets.fromLTRB(8, 8, 16, 8),
       child: Row(
         children: [
-          IconButton(
-            onPressed: () => Get.back(),
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
+          NoTapSound(
+            child: IconButton(
+              onPressed: () => Get.back(),
+              icon: const Icon(Icons.arrow_back, color: Colors.white),
+            ),
           ),
           Expanded(
             child: AppComponents.text(

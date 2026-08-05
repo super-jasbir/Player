@@ -8,6 +8,7 @@ import 'package:player/utils/app_color.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../utils/app_components.dart';
 import 'data/local/shared_prefs.dart';
+import 'package:player/core/services/tap_sound.dart';
 
 class Referral extends StatefulWidget {
   String? title = "";
@@ -75,7 +76,8 @@ class _GameScreenState extends State<Referral> {
                         right: 18),
                     child: Row(
                       children: [
-                        InkWell(
+                        NoTapSound(
+                          child: InkWell(
                             onTap: () {
                               Get.back();
                             },
@@ -83,6 +85,7 @@ class _GameScreenState extends State<Referral> {
                               Icons.arrow_back_ios_new,
                               color: Colors.black,
                             )),
+                        ),
                         Spacer(),
                         AppComponents.text("Referral",
                             fontWeight: FontWeight.bold,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:player/core/services/sound_service.dart';
 import 'package:player/ui/splash/splash_screen_controller.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -18,6 +19,9 @@ class _SplashScreen extends State<SplashScreen>
   @override
   void initState() {
     super.initState();
+
+    // Splash sound, capped to 10s and faded out so it blends into the app.
+    SoundService.instance.playSplash();
 
     controller.splashDelay();
 
