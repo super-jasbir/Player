@@ -54,6 +54,17 @@ class LoginScreen extends GetView<LoginController> {
                 ],
               ),
             ),
+            // Spend logo up top — same asset as the Get Started screen.
+            Align(
+              alignment: Alignment.topCenter,
+              child: Padding(
+                padding: EdgeInsets.only(top: 60.h, left: 40.w, right: 40.w),
+                child: Image.asset(
+                  "assets/images/m2/start_bg_logo.png",
+                  errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                ),
+              ),
+            ),
             // Frosted card holding the login form.
             Align(
               alignment: Alignment.bottomCenter,

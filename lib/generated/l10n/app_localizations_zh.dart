@@ -177,6 +177,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get biometricLock => '生物识别锁';
 
   @override
+  String get muteAudio => '静音';
+
+  @override
   String get contact => '联系我们';
 
   @override

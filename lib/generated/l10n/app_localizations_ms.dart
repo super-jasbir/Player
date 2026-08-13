@@ -179,6 +179,9 @@ class AppLocalizationsMs extends AppLocalizations {
   String get biometricLock => 'KUNCI BIOMETRIK';
 
   @override
+  String get muteAudio => 'SENYAPKAN AUDIO';
+
+  @override
   String get contact => 'HUBUNGI';
 
   @override

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:player/core/services/sound_service.dart';
 import 'package:player/ui/splash/splash_screen_controller.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -20,10 +19,8 @@ class _SplashScreen extends State<SplashScreen>
   void initState() {
     super.initState();
 
-    // Splash sound: skip the first 5s of the clip, then play for the 10s
-    // splash window (faded out at the end so it blends into the app).
-    SoundService.instance.playSplash(startAt: const Duration(seconds: 5));
-
+    // The splash clip now loops as the app's background music (started in
+    // main()), so there is nothing screen-specific to start here.
     controller.splashDelay();
 
     _progressController = AnimationController(

@@ -28,6 +28,10 @@ void main() async {
 
   // Settings chosen on the settings screen, restored before the first frame.
   await SoundService.instance.load();
+  // Kick off the looping background music (the old splash clip) so it plays on
+  // every screen for the whole session. Skips the clip's 5s intro on first play
+  // and stays silent until un-muted if the user had muted audio.
+  SoundService.instance.startBackgroundMusic(startAt: const Duration(seconds: 5));
   final savedLanguage = await SharedPref.getLanguageCode();
 
   SystemChrome.setPreferredOrientations([

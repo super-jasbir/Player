@@ -178,6 +178,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get biometricLock => 'BIOMETRIC LOCK';
 
   @override
+  String get muteAudio => 'MUTE AUDIO';
+
+  @override
   String get contact => 'CONTACT';
 
   @override

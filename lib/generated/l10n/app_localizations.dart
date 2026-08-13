@@ -436,6 +436,12 @@ abstract class AppLocalizations {
   /// **'BIOMETRIC LOCK'**
   String get biometricLock;
 
+  /// No description provided for @muteAudio.
+  ///
+  /// In en, this message translates to:
+  /// **'MUTE AUDIO'**
+  String get muteAudio;
+
   /// No description provided for @contact.
   ///
   /// In en, this message translates to:

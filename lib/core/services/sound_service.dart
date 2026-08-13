@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:audioplayers/audioplayers.dart';
 
 import '../../data/local/shared_prefs.dart';
@@ -30,25 +28,39 @@ class SoundService {
   final AudioPlayer _timerPlayer = AudioPlayer();
   bool _timerPlaying = false;
 
-  /// Player for the splash sound (a long clip we cap and fade out).
-  final AudioPlayer _splashPlayer = AudioPlayer();
-  Timer? _splashCapTimer;
-  Timer? _splashFadeTimer;
+  /// Looping background-music player. The clip that used to only play on the
+  /// splash screen now loops for the whole session on every screen.
+  final AudioPlayer _musicPlayer = AudioPlayer();
+
+  /// Someone has asked the background music to start (so it should resume when
+  /// unmuted). Stays true for the rest of the session.
+  bool _musicRequested = false;
+
+  /// `play()` has been called on the music player at least once, so [resume]
+  /// is valid rather than a fresh [play].
+  bool _musicPlaying = false;
+
+  /// Where to seek to the first time the background music starts.
+  Duration _musicStartAt = Duration.zero;
 
   double _soundVolume = 1.0;
   double _musicVolume = 1.0;
+  bool _muted = false;
 
   /// Volume of button clicks / effects, 0.0 - 1.0.
   double get soundVolume => _soundVolume;
 
-  /// Volume for background music. Stored and honoured by [setMusicVolume], but
-  /// the app ships no music track yet, so nothing consumes it today.
+  /// Volume for the looping background music, 0.0 - 1.0.
   double get musicVolume => _musicVolume;
 
-  /// Loads the saved volumes. Call once before `runApp`.
+  /// Whether all app audio is currently muted by the settings toggle.
+  bool get isMuted => _muted;
+
+  /// Loads the saved volumes and mute state. Call once before `runApp`.
   Future<void> load() async {
     _soundVolume = await SharedPref.getSoundVolume();
     _musicVolume = await SharedPref.getMusicVolume();
+    _muted = await SharedPref.getAudioMuted();
   }
 
   Future<void> setSoundVolume(double volume) async {
@@ -56,14 +68,46 @@ class SoundService {
     await SharedPref.saveSoundVolume(_soundVolume);
   }
 
+  /// Applies a new music volume live to the running loop without persisting it
+  /// — use while the settings slider is being dragged for instant feedback.
+  Future<void> previewMusicVolume(double volume) async {
+    _musicVolume = volume.clamp(0.0, 1.0);
+    if (_muted) return;
+    try {
+      await _musicPlayer.setVolume(_musicVolume);
+    } catch (_) {}
+  }
+
+  /// Persists the music volume (and applies it live). Call when the slider drag
+  /// settles.
   Future<void> setMusicVolume(double volume) async {
     _musicVolume = volume.clamp(0.0, 1.0);
     await SharedPref.saveMusicVolume(_musicVolume);
+    if (_muted) return;
+    try {
+      await _musicPlayer.setVolume(_musicVolume);
+    } catch (_) {}
+  }
+
+  /// Toggles the global mute. When muting, the background music pauses and all
+  /// effects fall silent; when un-muting, the music resumes from where it was
+  /// (if it had been started) and effects play again. Persisted so the choice
+  /// survives app restarts.
+  Future<void> setMuted(bool muted) async {
+    _muted = muted;
+    await SharedPref.saveAudioMuted(muted);
+    if (muted) {
+      try {
+        await _musicPlayer.pause();
+      } catch (_) {}
+    } else if (_musicRequested) {
+      await _ensureMusicPlaying();
+    }
   }
 
   /// Plays the UI click at the configured volume. Silent at zero.
   Future<void> playClick() async {
-    if (_soundVolume <= 0) return;
+    if (_muted || _soundVolume <= 0) return;
     try {
       await _clickPlayer.stop();
       await _clickPlayer.play(
@@ -77,7 +121,7 @@ class SoundService {
 
   /// Plays the back-navigation sound at the configured volume. Silent at zero.
   Future<void> playBack() async {
-    if (_soundVolume <= 0) return;
+    if (_muted || _soundVolume <= 0) return;
     try {
       await _backPlayer.stop();
       await _backPlayer.play(
@@ -91,7 +135,7 @@ class SoundService {
 
   /// Plays the game-completion celebration sound. Silent at zero volume.
   Future<void> playGameComplete() async {
-    if (_soundVolume <= 0) return;
+    if (_muted || _soundVolume <= 0) return;
     try {
       await _gameCompletePlayer.stop();
       await _gameCompletePlayer.play(
@@ -105,7 +149,7 @@ class SoundService {
 
   /// Plays the leaderboard-screen sound. Silent at zero volume.
   Future<void> playLeaderboard() async {
-    if (_soundVolume <= 0) return;
+    if (_muted || _soundVolume <= 0) return;
     try {
       await _leaderboardPlayer.stop();
       await _leaderboardPlayer.play(
@@ -121,7 +165,7 @@ class SoundService {
   /// calling it again while already playing is a no-op (no restart blip).
   /// Silent at zero volume. Pair with [stopTimer] when leaving the screen.
   Future<void> startTimerLoop() async {
-    if (_soundVolume <= 0 || _timerPlaying) return;
+    if (_muted || _soundVolume <= 0 || _timerPlaying) return;
     _timerPlaying = true;
     try {
       await _timerPlayer.setReleaseMode(ReleaseMode.loop);
@@ -145,66 +189,51 @@ class SoundService {
     }
   }
 
-  /// Plays the splash sound, capped to [maxDuration] (default 10s) since the
-  /// source clip is long. It fades out over the final ~1.2s so it blends into
-  /// the app's music instead of cutting off abruptly. Plays independently of
-  /// the splash screen's lifecycle so it can continue across the transition to
-  /// the next screen. Silent at zero volume.
-  Future<void> playSplash({
-    Duration maxDuration = const Duration(seconds: 10),
-    Duration startAt = Duration.zero,
-  }) async {
-    if (_soundVolume <= 0) return;
-    _splashCapTimer?.cancel();
-    _splashFadeTimer?.cancel();
+  /// Starts the looping background music (the old splash clip). Call once, as
+  /// early as possible — it keeps playing across every screen for the rest of
+  /// the session. Idempotent: extra calls just keep the same loop going.
+  /// Honours the mute toggle: if muted, the request is remembered and the music
+  /// starts as soon as the user un-mutes. [startAt] skips the clip's intro on
+  /// the very first play.
+  Future<void> startBackgroundMusic({Duration startAt = Duration.zero}) async {
+    if (!_musicRequested) {
+      _musicRequested = true;
+      _musicStartAt = startAt;
+    }
+    if (_muted) return;
+    await _ensureMusicPlaying();
+  }
+
+  /// Ensures the loop is actually playing at the current volume — starting it
+  /// the first time, resuming it after a mute pause thereafter.
+  Future<void> _ensureMusicPlaying() async {
     try {
-      await _splashPlayer.setReleaseMode(ReleaseMode.stop);
-      await _splashPlayer.stop();
-      await _splashPlayer.play(
-        AssetSource('splash_sound.mpeg'),
-        volume: _soundVolume,
-      );
-      // Skip the intro of the clip and start from [startAt].
-      if (startAt > Duration.zero) {
-        await _splashPlayer.seek(startAt);
+      await _musicPlayer.setReleaseMode(ReleaseMode.loop);
+      if (!_musicPlaying) {
+        _musicPlaying = true;
+        await _musicPlayer.play(
+          AssetSource('splash_sound.mpeg'),
+          volume: _musicVolume,
+        );
+        if (_musicStartAt > Duration.zero) {
+          await _musicPlayer.seek(_musicStartAt);
+        }
+      } else {
+        await _musicPlayer.resume();
+        await _musicPlayer.setVolume(_musicVolume);
       }
-      // Begin a short fade ~1.2s before the cap, then hard-stop at the cap.
-      const fade = Duration(milliseconds: 1200);
-      final fadeStart =
-          maxDuration > fade ? maxDuration - fade : Duration.zero;
-      _splashCapTimer = Timer(fadeStart, () => _fadeOutSplash(fade));
     } catch (_) {
-      // Audio is never worth breaking the splash over.
+      // Audio is never worth breaking the app over.
     }
   }
 
-  void _fadeOutSplash(Duration fade) {
-    const int steps = 12;
-    final double base = _soundVolume;
-    final int stepMs = (fade.inMilliseconds ~/ steps).clamp(1, 1000);
-    int i = 0;
-    _splashFadeTimer?.cancel();
-    _splashFadeTimer = Timer.periodic(Duration(milliseconds: stepMs), (t) async {
-      i++;
-      if (i >= steps) {
-        t.cancel();
-        try {
-          await _splashPlayer.stop();
-        } catch (_) {}
-      } else {
-        try {
-          await _splashPlayer.setVolume((base * (1 - i / steps)).clamp(0.0, 1.0));
-        } catch (_) {}
-      }
-    });
-  }
-
-  /// Stops the splash sound immediately (e.g. if muted mid-play).
-  Future<void> stopSplash() async {
-    _splashCapTimer?.cancel();
-    _splashFadeTimer?.cancel();
+  /// Stops the background music entirely (rarely needed — mute is preferred so
+  /// it can resume from the same spot).
+  Future<void> stopBackgroundMusic() async {
+    _musicRequested = false;
+    _musicPlaying = false;
     try {
-      await _splashPlayer.stop();
+      await _musicPlayer.stop();
     } catch (_) {
       // ignore
     }

@@ -11,6 +11,7 @@ class SharedPref {
   static const String _onboardingDone = 'onboarding_done';
   static const String _soundVolume = 'sound_volume';
   static const String _musicVolume = 'music_volume';
+  static const String _audioMuted = 'audio_muted';
   static const String _languageCode = 'language_code';
   static const String _biometricLock = 'biometric_lock';
   static const String _locationEnabled = 'location_enabled';
@@ -20,6 +21,7 @@ class SharedPref {
   static const List<String> _deviceSettingKeys = [
     _soundVolume,
     _musicVolume,
+    _audioMuted,
     _languageCode,
     _biometricLock,
     _locationEnabled,
@@ -135,6 +137,18 @@ class SharedPref {
   static Future<double> getMusicVolume() async {
     prefs = await SharedPreferences.getInstance();
     return prefs?.getDouble(_musicVolume) ?? 1.0;
+  }
+
+  /// Global mute toggle. When true all app audio (looping background music and
+  /// UI effects) is silenced until turned back off.
+  static Future<void> saveAudioMuted(bool muted) async {
+    prefs = await SharedPreferences.getInstance();
+    await prefs?.setBool(_audioMuted, muted);
+  }
+
+  static Future<bool> getAudioMuted() async {
+    prefs = await SharedPreferences.getInstance();
+    return prefs?.getBool(_audioMuted) ?? false;
   }
 
   /// Locale code chosen on the settings screen ("en" / "zh").

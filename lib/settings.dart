@@ -50,6 +50,7 @@ class _SettingScreenState extends State<SettingScreen> {
 
   double _soundVolume = SoundService.instance.soundVolume;
   double _musicVolume = SoundService.instance.musicVolume;
+  bool _audioMuted = SoundService.instance.isMuted;
   _Language _language = _Language.english;
   bool _locationEnabled = false;
   bool _biometricLock = false;
@@ -81,6 +82,14 @@ class _SettingScreenState extends State<SettingScreen> {
       _locationEnabled = location;
       _biometricLock = biometric;
     });
+  }
+
+  /// Global mute toggle: silences the looping background music (and all UI
+  /// effects) and persists the choice via [SoundService]. Un-muting resumes the
+  /// music from where it left off.
+  Future<void> _onMuteChanged(bool value) async {
+    setState(() => _audioMuted = value);
+    await SoundService.instance.setMuted(value);
   }
 
   Future<void> _onLanguageChanged(_Language? language) async {
@@ -197,8 +206,19 @@ class _SettingScreenState extends State<SettingScreen> {
           _volumeRow(
             icon: Icons.music_note_rounded,
             value: _musicVolume,
-            onChanged: (v) => setState(() => _musicVolume = v),
+            // Preview the background-music volume live as the slider moves.
+            onChanged: (v) {
+              setState(() => _musicVolume = v);
+              SoundService.instance.previewMusicVolume(v);
+            },
+            // Persist once the drag settles.
             onChangeEnd: (v) => SoundService.instance.setMusicVolume(v),
+          ),
+          _divider(),
+          _toggleRow(
+            label: l10n.muteAudio,
+            value: _audioMuted,
+            onChanged: _onMuteChanged,
           ),
           _divider(),
           _sectionLabel(l10n.language),
