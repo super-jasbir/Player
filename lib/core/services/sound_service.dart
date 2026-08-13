@@ -152,6 +152,7 @@ class SoundService {
   /// the next screen. Silent at zero volume.
   Future<void> playSplash({
     Duration maxDuration = const Duration(seconds: 10),
+    Duration startAt = Duration.zero,
   }) async {
     if (_soundVolume <= 0) return;
     _splashCapTimer?.cancel();
@@ -163,6 +164,10 @@ class SoundService {
         AssetSource('splash_sound.mpeg'),
         volume: _soundVolume,
       );
+      // Skip the intro of the clip and start from [startAt].
+      if (startAt > Duration.zero) {
+        await _splashPlayer.seek(startAt);
+      }
       // Begin a short fade ~1.2s before the cap, then hard-stop at the cap.
       const fade = Duration(milliseconds: 1200);
       final fadeStart =

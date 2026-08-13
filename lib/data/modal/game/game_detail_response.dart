@@ -102,7 +102,7 @@ class GameInfo {
 class OutletDetail {
   int outletId;
   String outletUniqueId;
-  // List<Image> outletImages;
+  List<String> outletImages;
   String initalImage;
   String outletName;
   String outletContactNumber;
@@ -120,7 +120,7 @@ class OutletDetail {
   OutletDetail({
     required this.outletId,
     required this.outletUniqueId,
-    // required this.outletImages,
+    required this.outletImages,
     required this.initalImage,
     required this.outletName,
     required this.outletContactNumber,
@@ -139,7 +139,9 @@ class OutletDetail {
   factory OutletDetail.fromJson(Map<String, dynamic> json) => OutletDetail(
     outletId: json["outletID"],
     outletUniqueId: json["outletUnique_id"],
-    // outletImages: List<Image>.from(json["outletImages"].map((x) => imageValues.map[x]!)),
+    outletImages: json["outletImages"] == null
+        ? []
+        : List<String>.from(json["outletImages"].map((x) => x.toString())),
     initalImage: json["initalImage"],
     outletName: json["outletName"],
     outletContactNumber: json["outletContactNumber"],
@@ -160,8 +162,8 @@ class OutletDetail {
   Map<String, dynamic> toJson() => {
     "outletID": outletId,
     "outletUnique_id": outletUniqueId,
-    // "outletImages": List<dynamic>.from(outletImages.map((x) => imageValues.reverse[x])),
-    "initalImage": imageValues.reverse[initalImage],
+    "outletImages": outletImages,
+    "initalImage": initalImage,
     "outletName": outletName,
     "outletContactNumber": outletContactNumber,
     "outletEmailAddress": outletEmailAddress,

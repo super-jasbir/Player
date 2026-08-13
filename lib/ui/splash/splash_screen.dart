@@ -20,14 +20,15 @@ class _SplashScreen extends State<SplashScreen>
   void initState() {
     super.initState();
 
-    // Splash sound, capped to 10s and faded out so it blends into the app.
-    SoundService.instance.playSplash();
+    // Splash sound: skip the first 5s of the clip, then play for the 10s
+    // splash window (faded out at the end so it blends into the app).
+    SoundService.instance.playSplash(startAt: const Duration(seconds: 5));
 
     controller.splashDelay();
 
     _progressController = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 4),
+      duration: const Duration(seconds: 10),
     )..addListener(() {
         setState(() {});
       });

@@ -14,7 +14,7 @@ class SplashScreenController extends BaseController{
   var leaderList = <SplashBannerList>[];
 
   splashDelay() async {
-    await Future.delayed(const Duration(seconds: 4));
+    await Future.delayed(const Duration(seconds: 10));
     final token = await SharedPref.getAccessToken();
     if (token != null && token.isNotEmpty) {
       // Returning logged-in user: skip the walkthrough/login and go straight

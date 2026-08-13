@@ -14,8 +14,10 @@ import 'package:player/core/theme/app_text_styles.dart';
 import 'package:player/data/modal/GetMerchantPaymentResponse.dart';
 import 'package:player/data/modal/game/game_detail_response.dart'
     show OutletDetail;
+import 'package:player/data/modal/merchant/merchant_list.dart';
 import 'package:player/game/merchant/GameMerchantDetail.dart';
 import 'package:player/merchant/merchant_controller.dart';
+import 'package:player/merchant/merchant_detail_screen.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../3dView/home_top_bar.dart';
@@ -947,11 +949,41 @@ class _GameScreenState extends State<GameMerchantList> {
     );
   }
 
-  /// Opens the outlet's detail screen and refreshes the list on the way back,
+  /// Opens the merchant detail screen and refreshes the list on the way back,
   /// so a game started from there is reflected here.
+  ///
+  /// [MerchantDetail] reads its data from [MerchantController.mData]
+  /// ([MerchantData]), while the game list carries [OutletDetail]s — so we map
+  /// the tapped outlet onto a [MerchantData] before navigating.
   void _openMerchantDetail(OutletDetail data) {
+    // Silence the looping game-timer sound while viewing the details; it
+    // resumes on the way back via _refreshGameDetail -> _setupTimer.
+    SoundService.instance.stopTimer();
     controller.outletDetail = data;
-    Get.to(GameMerchantDetail())?.then((_) => _refreshGameDetail());
+    merchantC.mData = MerchantData(
+      merchantType: "",
+      id: data.outletId,
+      uniqueId: data.outletUniqueId,
+      // Full gallery for the detail slider (falls back to the initial image).
+      outletImages:
+          data.outletImages.isNotEmpty ? data.outletImages : [data.initalImage],
+      initalImage: data.initalImage,
+      minimumSpending: data.minimumSpending,
+      outletName: data.outletName,
+      outletContactNumber: data.outletContactNumber,
+      outletEmailAddress: data.outletEmailAddress,
+      outletZone: data.outletZone,
+      outletAddress: data.outletAddress,
+      lat: data.lat,
+      long: data.long,
+      specializedIn: data.specializedIn,
+      startHours: data.startHours,
+      endHours: data.endHours,
+      description: "",
+      createdAt: null,
+      updatedAt: null,
+    );
+    Get.to(MerchantDetail())?.then((_) => _refreshGameDetail());
   }
 
   Widget _merchantCard(OutletDetail data) {
@@ -1013,7 +1045,7 @@ class _GameScreenState extends State<GameMerchantList> {
                   ),
                   SizedBox(height: 6.h),
                   InkWell(
-                    // onTap: () => _openMerchantDetail(data),
+                    onTap: () => _openMerchantDetail(data),
                     child: Text(
                       "View Details",
                       style: TextStyle(
