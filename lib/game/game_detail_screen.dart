@@ -42,6 +42,17 @@ class _GameScreenState extends State<GameDetailScreen> {
 
   static const String _sampleGame = "assets/images/home/ic_game_sample.png";
 
+  @override
+  void initState() {
+    super.initState();
+    // Populate the player name so the reset dialog can show it. Deferred to
+    // after the first frame — getProfileInfo synchronously updates an
+    // observable, which would otherwise rebuild an Obx during build.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      controller.getProfileInfo();
+    });
+  }
+
   void _selectStation(String type) {
     if (!isChecked) {
       Fluttertoast.showToast(msg: "Please accept Terms & Conditions");
@@ -102,8 +113,25 @@ class _GameScreenState extends State<GameDetailScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              // Circular back button.
-                              _CircleBackButton(onTap: () => Get.back()),
+                              // Back button, plus a "Reset Game" button at the
+                              // top-right — only once at least one station of
+                              // this game has been completed
+                              // (start_timer_count is set on the first
+                              // completion, so it doubles as "any shop done?").
+                              Row(
+                                children: [
+                                  _CircleBackButton(onTap: () => Get.back()),
+                                  const Spacer(),
+                                  if (controller.gameData?.start_timer_count !=
+                                      null)
+                                    // Nudge the reset button up so it sits
+                                    // nearer the top edge of the card.
+                                    Transform.translate(
+                                      offset: Offset(0, -20.h),
+                                      child: _resetGameButton(),
+                                    ),
+                                ],
+                              ),
                               SizedBox(height: 18.h),
                               // Inner detail card (name + image + details).
                               Container(
@@ -224,6 +252,132 @@ class _GameScreenState extends State<GameDetailScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  /// Red pill button shown at the top-right of the detail card. Reuses the same
+  /// reset dialog flow as the game list screen.
+  Widget _resetGameButton() {
+    return InkWell(
+      onTap: _showResetDialog,
+      borderRadius: BorderRadius.circular(20.r),
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 8.h),
+        decoration: BoxDecoration(
+          color: const Color(0xFFE53935).withOpacity(0.92),
+          borderRadius: BorderRadius.circular(20.r),
+          border: Border.all(color: Colors.white.withOpacity(0.7)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.refresh, size: 16, color: Colors.white),
+            SizedBox(width: 6.w),
+            Text(
+              "Reset Game",
+              style: TextStyle(
+                fontFamily: 'Inter',
+                fontSize: 13.sp,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Same reset dialog used across the app: dark card + warning badge. Resets
+  /// the in-progress game (getResetGame), which pops back to the game list on
+  /// success.
+  void _showResetDialog() {
+    final data = controller.gameData!;
+    final name = controller.playername.value;
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (_) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                color: const Color(0xFF2C2C2C),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              padding: const EdgeInsets.fromLTRB(20, 40, 20, 20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const SizedBox(height: 24),
+                  Text(
+                    name,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    "Do you really want to reset your game? This action will remove all completed stations detail.",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.white70, fontSize: 14),
+                  ),
+                  const SizedBox(height: 20),
+                  const Divider(color: Colors.white24),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text(
+                            "Cancel",
+                            style: TextStyle(color: Colors.white70, fontSize: 16),
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                            controller.getResetGame(data.gameUniqueId);
+                          },
+                          child: const Text(
+                            "Reset",
+                            style: TextStyle(
+                              color: Colors.redAccent,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            Positioned(
+              top: -35,
+              left: 0,
+              right: 0,
+              child: CircleAvatar(
+                backgroundColor: Colors.redAccent,
+                radius: 35,
+                child: const Icon(
+                  Icons.warning_amber_rounded,
+                  color: Colors.white,
+                  size: 30,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

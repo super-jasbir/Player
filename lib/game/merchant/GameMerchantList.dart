@@ -77,6 +77,11 @@ class _GameScreenState extends State<GameMerchantList> {
   /// share sheet in the points dialog.
   String _capturedImagePath = "";
 
+  /// True when the shop just submitted was the final one (all shops of this game
+  /// are now complete). Once the player closes the celebration dialogs, we send
+  /// them to the home page instead of back to the fully-completed list.
+  bool _lastOutletCompleted = false;
+
   @override
   void initState() {
     appC.selectedNation;
@@ -483,6 +488,9 @@ class _GameScreenState extends State<GameMerchantList> {
     if (completedCount == (controller.outletList.length - 1)) {
       lastItem = true;
     }
+    // Remember so the celebration flow can redirect home once the player closes
+    // it (see _closeToMerchantList).
+    _lastOutletCompleted = lastItem;
 
     merchantC.gameComplete(
       controller.gameData?.gameUniqueId ?? "",
@@ -754,6 +762,14 @@ class _GameScreenState extends State<GameMerchantList> {
     Navigator.of(dialogContext).pop();
     _capturedImagePath = "";
     merchantC.uploadedProfileImage.value = "";
+    // If that was the final shop, every station of this game is now complete —
+    // send the player home instead of back to the finished list.
+    if (_lastOutletCompleted) {
+      _lastOutletCompleted = false;
+      SoundService.instance.stopTimer();
+      Get.offAll(HomeScreenPlayer());
+      return;
+    }
     _refreshGameDetail();
   }
 
